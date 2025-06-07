@@ -2,6 +2,7 @@ import streamlit as st
 from pipeline import (
     load_data,
     compute_metrics,
+    compute_metrics_in_currency,
     train_model,
     segment_clients,
     train_premium_regressor,
@@ -18,8 +19,25 @@ if run:
     with st.spinner("Loading data..."):
         df = load_data(data_path)
 
+    currencies = sorted(df["currency"].unique())
+    currency_filter = st.selectbox("Filter dataset by currency", ["All"] + currencies)
+    view_currency = st.selectbox(
+        "Convert metrics to", ["Original", "USD", "GHS"], index=0
+    )
+
+    if currency_filter != "All":
+        filtered = df[df["currency"] == currency_filter]
+    else:
+        filtered = df
+
     st.subheader("Simple Metrics")
-    metrics = compute_metrics(df)
+
+    if view_currency == "USD":
+        metrics = compute_metrics_in_currency(filtered, "USD")
+    elif view_currency == "GHS":
+        metrics = compute_metrics_in_currency(filtered, "GHS")
+    else:
+        metrics = compute_metrics(filtered, None if currency_filter == "All" else currency_filter)
     for key, value in metrics.items():
         st.write(f"**{key.replace('_', ' ').title()}**: {value}")
 
