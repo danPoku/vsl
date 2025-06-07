@@ -14,6 +14,19 @@ from sklearn.metrics import (
     mean_squared_error,
 )
 
+# Rough average exchange rates to USD used for conversion. These values are
+# placeholders for demonstration. In a real system these would come from a
+# reliable historical FX data source.
+CONVERSION_TO_USD = {
+    "USD": 1.0,
+    "GHS": 0.086,  # 1 Ghana cedi ~= 0.086 USD
+    "EUR": 1.1,
+    "GBP": 1.3,
+    "Le": 0.000045,
+    "XOF": 0.0016,
+    "D": 0.016,
+}
+
 
 def load_data(path: str) -> pd.DataFrame:
     """Load dataset from CSV."""
@@ -26,21 +39,58 @@ def load_data(path: str) -> pd.DataFrame:
     return df
 
 
-def compute_metrics(df: pd.DataFrame) -> dict:
-    """Compute simple domain metrics from the dataframe."""
+def compute_metrics(df: pd.DataFrame, currency: str | None = None) -> dict:
+    """Compute simple domain metrics from the dataframe.
+
+    If ``currency`` is provided the dataframe is first filtered to rows
+    matching that currency before aggregation.
+    """
+    if currency is not None:
+        df = df[df["currency"] == currency]
+
     metrics = {}
-    metrics['total_policies'] = len(df)
-    metrics['total_premium'] = df['fac_premium'].sum()
-    metrics['average_premium'] = df['fac_premium'].mean()
-    metrics['average_outstanding_balance'] = df['outstanding_balance'].mean()
-    metrics['payment_status_counts'] = df['payment_status'].value_counts().to_dict()
-    metrics['top_outstanding_by_business'] = (
-        df.groupby('business_name')['outstanding_balance'].sum()
+    metrics["total_policies"] = len(df)
+    metrics["total_premium"] = df["fac_premium"].sum()
+    metrics["average_premium"] = df["fac_premium"].mean()
+    metrics["average_outstanding_balance"] = df["outstanding_balance"].mean()
+    metrics["payment_status_counts"] = df["payment_status"].value_counts().to_dict()
+    metrics["top_outstanding_by_business"] = (
+        df.groupby("business_name")["outstanding_balance"].sum()
         .sort_values(ascending=False)
         .head(5)
         .to_dict()
     )
     return metrics
+
+
+def compute_metrics_in_currency(df: pd.DataFrame, target: str) -> dict:
+    """Convert numeric columns to ``target`` currency then compute metrics."""
+    if target not in ("USD", "GHS"):
+        raise ValueError("target must be 'USD' or 'GHS'")
+
+    numeric_cols = [
+        "fac_sum_insured",
+        "fac_premium",
+        "brokerage",
+        "nic_levy",
+        "amount_due",
+        "commission",
+        "amount_paid",
+        "outstanding_balance",
+    ]
+
+    df_conv = df.copy()
+
+    rates = df_conv["currency"].map(CONVERSION_TO_USD).fillna(1.0)
+    if target == "GHS":
+        rates /= CONVERSION_TO_USD["GHS"]
+    factors = rates
+    for col in numeric_cols:
+        df_conv[col] = df_conv[col] * factors
+
+    # After conversion, treat everything as the same currency
+    df_conv["currency"] = target
+    return compute_metrics(df_conv)
 
 
 def train_model(df: pd.DataFrame):
