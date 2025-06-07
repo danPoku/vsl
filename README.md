@@ -15,12 +15,12 @@ This repository contains a dataset (`visal_data_cleaned.csv`) with insurance pol
 ## Requirements
 
 - Python 3.12+
-- `pandas` and `scikit-learn`
+- `pandas`, `scikit-learn` and `streamlit`
 
 Install the requirements with:
 
 ```bash
-pip install pandas scikit-learn
+pip install pandas scikit-learn streamlit
 ```
 
 ## Usage
@@ -34,4 +34,10 @@ python3 pipeline.py --data visal_data_cleaned.csv
 This prints computed metrics followed by model accuracy and a classification report.
 
 Additional analyses such as client segmentation, premium regression, risk exposure summaries and anomaly detection are also printed. Future datasets with the same column structure can be provided via the `--data` argument for analysis.
+
+To view these metrics in an interactive dashboard, run:
+
+```bash
+streamlit run dashboard.py
+```
 
