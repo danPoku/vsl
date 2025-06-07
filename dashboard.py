@@ -10,15 +10,27 @@ from pipeline import (
     detect_anomalies,
 )
 
+# Cache loading of the CSV so repeated runs are faster. The cach key is the
+# file path which allows switching between datasets if required
+@st.cache_data
+def get_data(path: str):
+    return load_data(path)
+
 st.title("Insurance Brokerage Analytics Dashboard")
 
 data_path = st.text_input("CSV data file", "visal_data_cleaned.csv")
 run = st.button("Run Analysis")
 
+# Load the dataframe when the button is pressed and remember it across reruns
+df = None
 if run:
     with st.spinner("Loading data..."):
-        df = load_data(data_path)
+        df = get_data(data_path)
+    st.session_state['df'] = df
+elif 'df' in st.session_state:
+    df = st.session_state['df']
 
+if df is not None:
     currencies = sorted(df["currency"].unique())
     currency_filter = st.selectbox("Filter dataset by currency", ["All"] + currencies)
     view_currency = st.selectbox(
@@ -63,3 +75,5 @@ if run:
 
     st.subheader("Potential Anomalies")
     st.dataframe(detect_anomalies(df))
+else:
+    st.info("Click 'Run Analysis' to load the data and see metrics.")
