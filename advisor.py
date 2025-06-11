@@ -223,4 +223,4 @@ if predict_btn:
     cC.error(f"🏢 **Reinsurer**\n\n{reins_msg}")
 
 else:
-    st.write("⬅ Configure the policy on the left, then click **Predict** to see the benchmark premium and guidance.")
+    st.write("⬅ Configure the policy on the left, then click **Advise** to see the benchmark premium and guidance.")
