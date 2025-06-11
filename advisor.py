@@ -101,8 +101,8 @@ with st.sidebar:
 
     currency = st.selectbox("Currency", ["GHS", "USD"])
 
-    brokerage = st.number_input("Brokerage",  min_value=0.0, max_value=99999.0,
-                                value=300.0, step=1.0)
+    brokerage = st.number_input("Brokerage %",  min_value=0.0, max_value=100.0,
+                                value=5.0, step=1.0)
     commission = st.number_input("Commission %", min_value=0.0, max_value=100.0,
                                  value=26.0, step=0.1)
 
@@ -141,9 +141,13 @@ with st.sidebar:
 
     # Calculate quoted premium from rate
     quoted_premium = (fac_rate_input / 100) * sum_ins
+    quoted_brokerage = (brokerage / 100) * quoted_premium
     st.markdown("---")
     st.write("**Quoted Facultative Premium**")
     st.info(fmt_currency(quoted_premium, currency))
+    st.markdown("---")
+    st.write("**Brokerage**")
+    st.info(fmt_currency(quoted_brokerage, currency))
 
     predict_btn = st.button("Advise")
 
@@ -156,7 +160,7 @@ if predict_btn:
         "fac_sum_insured": sum_ins,
         "business_name":   business,
         "currency":        currency,
-        "brokerage":       brokerage,
+        "brokerage":       quoted_brokerage,
         "commission":      commission,
         "reinsured":       reinsurer
     }])
