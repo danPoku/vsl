@@ -5,7 +5,7 @@ import pandas as pd
 import pickle
 from pathlib import Path
 
-st.set_page_config(page_title="Fac-Check", page_icon="📊")
+st.set_page_config(page_title="VisalRE Premium Check", page_icon="📊")
 
 # ── 1. Load pickled model (cached) ──────────────────────────────────────────
 
