@@ -19,6 +19,24 @@ def load_model(path: Path):
 
 model = load_model(Path(__file__).with_name("visal_re_predictor.pkl"))
 
+# ── Load reinsurer default-band lookup ────────────────────────────────
+@st.cache_data
+def load_band_lookup(csv_path: Path):
+    df_band = (
+        pd.read_csv(csv_path)
+          .assign(reinsured=lambda d: d["reinsured"].str.strip())
+          .assign(band=lambda d: d["band_x"].str.lower())
+    )
+    return dict(zip(df_band["reinsured"], df_band["band"]))
+
+band_lookup = load_band_lookup(Path(__file__).with_name("prem_adequacy_with_bands.csv"))
+
+band_desc = {
+    "low":        "Low premium payment defaulter",
+    "moderate":   "Moderate premium payment defaulter",
+    "high":       "High premium payment defaulter",
+}
+
 # ── 2. Utility: currency formatter ─────────────────────────────────────────
 
 
@@ -223,7 +241,7 @@ if predict_btn:
     gap_pct = (gap / pred_prem) * 100 if pred_prem else 0
 
     # ── Results metrics ────────────────────────────────────────────────────
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     # flag colours and text
     if abs(gap_pct) <= 10:
@@ -269,39 +287,76 @@ if predict_btn:
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
     col3.metric("Visal Model Rating Guide", range_txt)
+    
+    # Reinsurer default band
+    band_key  = band_lookup.get(insurer, None)
+    default_txt = band_desc.get(band_key, "No data available")
+    col4.metric(insurer, default_txt)
 
     # ── Advisory panel ─────────────────────────────────────────────────────
-    advice = {
-        "ok": [
-            # Cedant
-            "✔ Fair price. You pay about what the market expects.",
-            # Broker
-            "✓ Easy placement. Commission is fine and client should be happy.",
-            # Reinsurer
-            "✓ Fair return for risk taken. Low chance of push-back."
-        ],
-        "under": [
-            # Cedant
-            "⚠ Cheap now, but you might keep too much risk. A big loss could hurt.",
-            # Broker
-            "⚠ Lower commission and reinsurer may refuse. Be ready to justify the low rate.",
-            # Reinsurer
-            "⚠ Premium may not cover claims. Profit at risk."
-        ],
-        "over": [
-            # Cedant
-            "❌ You’re paying more than the model price. Ties up extra cash.",
-            # Broker
-            "❗ Higher commission, but client could say no or delay payment.",
-            # Reinsurer
-            "💰 Extra premium today, yet higher chance the policy is renegotiated or canceled."
-        ]
+    advice_matrix = {
+        "ok": {
+            "low": [
+                "👍 Rate is fair and the insurer usually pays on time – good deal.",
+                "👍 Smooth placement; normal commission, low collection risk.",
+                "👍 Fair premium and prompt payer – business as usual."
+            ],
+            "moderate": [
+                "👍 Rate is fine but this insurer can be slow – set clear due dates.",
+                "🙂 Deal works, yet chase invoices quickly.",
+                "⚠ Fair rate; settle premiums fast to keep terms."
+            ],
+            "high": [
+                "⚠ Good rate, yet insurer often pays late – add strict credit terms.",
+                "⚠ Commission OK, but expect follow-ups on payment.",
+                "⚠ Rate okay, history of arrears – cash before cover where possible."
+            ],
+        },
+        "under": {
+            "low": [
+                "⚠ Cheap cover from a reliable payer – be sure limits are enough.",
+                "😐 Lower commission but quick cash; confirm scope is adequate.",
+                "⚠ Thin premium – watch insurer's claims ratio."
+            ],
+            "moderate": [
+                "⚠ Cheap price and payer sometimes late – keep retention small.",
+                "⚠ Discounted premium; send reminders early.",
+                "⚠ Low premium; pay promptly to avoid stricter terms."
+            ],
+            "high": [
+                "🚩 Very cheap and payer often late – ask for deposit or bank guarantee.",
+                "🚩 Low commission plus high collection risk – rethink placement.",
+                "🚩 Premium may not cover risk; insist on cash up-front."
+            ],
+        },
+        "over": {
+            "low": [
+                "❗ You’re paying more than needed, even with a good payer – negotiate down.",
+                "❗ Higher commission, but client may object; be ready.",
+                "🙂 Extra premium for you, payment likely on time – still overpriced."
+            ],
+            "moderate": [
+                "❗ Pricey and payer sometimes late – ask for a discount or staged payments.",
+                "❗ Commission up, but expect slower cash; manage client expectations.",
+                "⚠ High rate; pay quickly to keep cover active."
+            ],
+            "high": [
+                "🚨 Expensive and chronic late payer – high financial risk; consider other markets.",
+                "🚨 Commission good, but collection will be tough – advise cash before cover.",
+                "🚩 Overpriced cover; past arrears mean tight credit control or decline."
+            ],
+        },
     }
-    cedant_msg, broker_msg, reins_msg = advice[band]
+
+    # ── ❷ Look up the three messages ------------------------------------------------
+    band_key  = band_lookup.get(insurer, None)            # "low" / "moderate" / "high"
+    band_key  = band_key if band_key in {"low","moderate","high"} else "low"
+
+    cedant_msg, broker_msg, reins_msg = advice_matrix[band][band_key]
 
     st.subheader("Implications")
     cA, cB, cC = st.columns(3)
-    cA.info(f"💼 **Cedant**\n\n{cedant_msg}")
+    cA.info(f"💼 **Cedant/Insurer**\n\n{cedant_msg}")
     cB.warning(f"🤝 **Broker**\n\n{broker_msg}")
     cC.error(f"🏢 **Reinsurance Market**\n\n{reins_msg}")
 
