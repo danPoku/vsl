@@ -205,10 +205,16 @@ if predict_btn:
     st.markdown(
         """
         <style>
+            /* ensure metric text wraps instead of clipping */
             div[data-testid="stMetric"] div[data-testid="metric-container"] {
                 overflow-wrap: break-word;
                 white-space: normal;
-                font-size: 1rem;
+                font-size: 0.9rem;
+            }
+            div[data-testid="stMetricLabel"],
+            div[data-testid="stMetricValue"] {
+                overflow-wrap: break-word;
+                white-space: normal;
             }
         </style>
         """,
