@@ -208,7 +208,7 @@ if predict_btn:
             div[data-testid="stMetric"] div[data-testid="metric-container"] {
                 overflow-wrap: break-word;
                 white-space: normal;
-                font-size: 1rem;
+                font-size: 0.5rem;
             }
         </style>
         """,
