@@ -223,7 +223,7 @@ if predict_btn:
     gap_pct = (gap / pred_prem) * 100 if pred_prem else 0
 
     # ── Results metrics ────────────────────────────────────────────────────
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
 
     # flag colours and text
     if abs(gap_pct) <= 10:
@@ -260,7 +260,6 @@ if predict_btn:
     )
 
     col2.metric("Average Acceptable Market Rate",   f"{pred_rate:.2%}")
-    col3.metric("Predicted vs Actual Gap %",            f"{gap_pct:+.1f}%")
 
     # predicted premium range guidance
     if pred_prem >= premium_input:
@@ -269,7 +268,7 @@ if predict_btn:
         range_low, range_high = pred_prem, math.sqrt(premium_input * pred_prem)
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
-    col4.metric("Visal Model Rating Guide", range_txt)
+    col3.metric("Visal Model Rating Guide", range_txt)
 
     # ── Advisory panel ─────────────────────────────────────────────────────
     advice = {
