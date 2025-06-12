@@ -138,7 +138,7 @@ with st.sidebar:
     )
 
     currency = st.selectbox(
-        "Currency", ["GHS", "USD", "EUR", "GBP", "XOF", "SLL", "GMD"])
+        "Currency", ["GHS", "USD", "EUR"])
 
     sum_ins = st.number_input(
         "Sum Insured",
