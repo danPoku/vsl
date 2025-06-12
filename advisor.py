@@ -152,7 +152,7 @@ with st.sidebar:
     predict_btn = st.button("Advise")
 
 # ── 4. Main panel – prediction & advisories ────────────────────────────────
-st.title("📊 Reinsurance Quotation Index Ad")
+st.title("📊 Reinsurance Quotation Index")
 
 if predict_btn:
     # build feature frame for the model
