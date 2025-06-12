@@ -89,20 +89,20 @@ with st.sidebar:
     )
 
     sum_ins = st.number_input(
-        "Facultative Sum Insured",
+        "Sum Insured",
         min_value=0.0, step=1000.0, format="%.2f"
     )
 
-    # new: user supplies rate %, premium auto-derived
-    fac_rate_input = st.number_input(
-        "Facultative Premium Rate (%)",
-        min_value=0.0, step=0.01, format="%.2f"
+    # User supplies premium figure, rate is auto-derived
+    fac_premium_input = st.number_input(
+        "Facultative Premium",
+        min_value=0.0, step=100.0, format="%.2f"
     )
 
     currency = st.selectbox("Currency", ["GHS", "USD"])
 
-    brokerage = st.number_input("Brokerage %",  min_value=0.0, max_value=100.0,
-                                value=5.0, step=1.0)
+    brokerage = st.number_input("Brokerage",  min_value=0.0,
+                                value=200.0, step=10.0)
     commission = st.number_input("Commission %", min_value=0.0, max_value=100.0,
                                  value=26.0, step=0.1)
 
@@ -139,15 +139,16 @@ with st.sidebar:
         ]
     )
 
-    # Calculate quoted premium from rate
-    quoted_premium = (fac_rate_input / 100) * sum_ins
-    quoted_brokerage = (brokerage / 100) * quoted_premium
+
+    # Calculate quoted fac rate and brokerage
+    quoted_fac_rate = (fac_premium_input / sum_ins * 100) if sum_ins else 0.0
+    quoted_brokerage_rate = (brokerage / fac_premium_input * 100) if fac_premium_input else 0.0
     st.markdown("---")
-    st.write("**Quoted Facultative Premium**")
-    st.info(fmt_currency(quoted_premium, currency))
+    st.write("**Quoted Facultative Rate(%)**")
+    st.info(f"{quoted_fac_rate:.2f}")
     st.markdown("---")
-    st.write("**Brokerage**")
-    st.info(fmt_currency(quoted_brokerage, currency))
+    st.write("**Brokerage Rate(%)**")
+    st.info(f"{quoted_brokerage_rate:.2f}")
 
     predict_btn = st.button("Advise")
 
@@ -160,7 +161,7 @@ if predict_btn:
         "fac_sum_insured": sum_ins,
         "business_name":   business,
         "currency":        currency,
-        "brokerage":       quoted_brokerage,
+        "brokerage":       brokerage,
         "commission":      commission,
         "reinsured":       reinsurer
     }])
@@ -168,7 +169,7 @@ if predict_btn:
     # run prediction
     pred_prem = float(model.predict(row)[0])
     pred_rate = pred_prem / sum_ins if sum_ins else 0
-    gap = quoted_premium - pred_prem
+    gap = fac_premium_input - pred_prem
     gap_pct = (gap / pred_prem) * 100 if pred_prem else 0
 
     # ── Results metrics ────────────────────────────────────────────────────
@@ -213,10 +214,10 @@ if predict_btn:
     col3.metric("Predicted vs Actual Gap %",            f"{gap_pct:+.1f}%")
 
     # predicted premium range guidance
-    if pred_prem >= quoted_premium:
-        range_low, range_high = quoted_premium, pred_prem
+    if pred_prem >= fac_premium_input:
+        range_low, range_high = fac_premium_input, pred_prem
     else:
-        range_low, range_high = pred_prem, quoted_premium
+        range_low, range_high = pred_prem, fac_premium_input
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
     col4.metric("Visal Model Rating Guide", range_txt)
