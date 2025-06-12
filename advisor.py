@@ -31,7 +31,7 @@ with st.sidebar:
     st.header("Enter policy details")
 
     business = st.selectbox(
-        "Business line",
+        "Policy Type",
         [
             "CONTRACTOR'S ALL RISKS",
             "Assets All Risks",
@@ -152,7 +152,7 @@ with st.sidebar:
     predict_btn = st.button("Advise")
 
 # ── 4. Main panel – prediction & advisories ────────────────────────────────
-st.title("📊 Facultative Premium Advisor")
+st.title("📊 Reinsurance Quotation Index Ad")
 
 if predict_btn:
     # build feature frame for the model
