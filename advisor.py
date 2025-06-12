@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 import pickle
 from pathlib import Path
+import math
 
 st.set_page_config(page_title="VisalRE Premium Check", page_icon="📊")
 
@@ -87,8 +88,57 @@ with st.sidebar:
 
         ]
     )
-    
-    currency = st.selectbox("Currency", ["GHS", "USD", "EUR", "GBP", "XOF", "SLL", "GMD"])
+
+    risk_occupation = st.selectbox(
+        "Risk Occupation",
+        [
+            "Agribusiness",
+            "Aluminium Processing",
+            "Bank",
+            "BDC Petroleum Company",
+            "Cable Manufacturing",
+            "Car Dealership",
+            "Ceramics Manufacturing",
+            "Construction",
+            "Corrugated Cardboard Production",
+            "Canned Seafoods Manufacturing",
+            "Education",
+            "Energy Generation",
+            "Ethanol Distillery",
+            "Food Manufacturing",
+            "Flour Production",
+            "Furniture Store",
+            "Gold Refinery",
+            "Gold Trading / Refinery",
+            "Heavy-Duty Vehicle Dealership",
+            "Hotelier",
+            "ICT Solutions",
+            "ID Manufacturing / Processing",
+            "Import / Export of Electrical Products",
+            "IT Solutions",
+            "Logistics",
+            "Mining",
+            "Packaging Solutions",
+            "Petroleum Retailing",
+            "Petroleum Trading",
+            "Pipes Manufacturing",
+            "Pre-fab Building Manufacturer",
+            "Real Estate",
+            "Residential Unit",
+            "Restaurant",
+            "Restaurant Chain",
+            "Security Services",
+            "Solar Panel Distribution",
+            "Steel Manufacturing",
+            "Supermarket",
+            "Timber Processing",
+            "Warehouse / Warehousing",
+            "Wholesale Food Distributors",
+        ]
+    )
+
+    currency = st.selectbox(
+        "Currency", ["GHS", "USD", "EUR", "GBP", "XOF", "SLL", "GMD"])
 
     sum_ins = st.number_input(
         "Sum Insured",
@@ -96,8 +146,8 @@ with st.sidebar:
     )
 
     # User supplies premium figure, rate is auto-derived
-    fac_premium_input = st.number_input(
-        "Facultative Premium",
+    premium_input = st.number_input(
+        "Premium",
         min_value=0.0, step=100.0, format="%.2f"
     )
 
@@ -106,8 +156,8 @@ with st.sidebar:
     commission = st.number_input("Commission %", min_value=0.0, max_value=100.0,
                                  value=26.0, step=0.1)
 
-    reinsurer = st.selectbox(
-        "Reinsurer",
+    insurer = st.selectbox(
+        "Insurer",
         [
             "Vanguard Assurance Company Limited",
             "Bedrock Insurance Company Limited",
@@ -139,10 +189,10 @@ with st.sidebar:
         ]
     )
 
-
     # Calculate quoted fac rate and brokerage
-    quoted_fac_rate = (fac_premium_input / sum_ins * 100) if sum_ins else 0.0
-    quoted_brokerage_rate = (brokerage / fac_premium_input * 100) if fac_premium_input else 0.0
+    quoted_fac_rate = (premium_input / sum_ins * 100) if sum_ins else 0.0
+    quoted_brokerage_rate = (
+        brokerage / premium_input * 100) if premium_input else 0.0
     st.markdown("---")
     st.write("**Quoted Facultative Rate(%)**")
     st.info(f"{quoted_fac_rate:.2f}")
@@ -163,13 +213,13 @@ if predict_btn:
         "currency":        currency,
         "brokerage":       brokerage,
         "commission":      commission,
-        "reinsured":       reinsurer
+        "reinsured":       insurer
     }])
 
     # run prediction
     pred_prem = float(model.predict(row)[0])
     pred_rate = pred_prem / sum_ins if sum_ins else 0
-    gap = fac_premium_input - pred_prem
+    gap = premium_input - pred_prem
     gap_pct = (gap / pred_prem) * 100 if pred_prem else 0
 
     # ── Results metrics ────────────────────────────────────────────────────
@@ -213,10 +263,10 @@ if predict_btn:
     col3.metric("Predicted vs Actual Gap %",            f"{gap_pct:+.1f}%")
 
     # predicted premium range guidance
-    if pred_prem >= fac_premium_input:
-        range_low, range_high = fac_premium_input, pred_prem
+    if pred_prem >= premium_input:
+        range_low, range_high = math.sqrt(premium_input * pred_prem), pred_prem
     else:
-        range_low, range_high = pred_prem, fac_premium_input
+        range_low, range_high = pred_prem, math.sqrt(premium_input * pred_prem)
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
     col4.metric("Visal Model Rating Guide", range_txt)
@@ -254,7 +304,7 @@ if predict_btn:
     cA, cB, cC = st.columns(3)
     cA.info(f"💼 **Cedant**\n\n{cedant_msg}")
     cB.warning(f"🤝 **Broker**\n\n{broker_msg}")
-    cC.error(f"🏢 **Reinsurer**\n\n{reins_msg}")
+    cC.error(f"🏢 **Reinsurance Market**\n\n{reins_msg}")
 
 else:
     st.write("⬅ Configure the policy on the left, then click **Advise** to see the benchmark premium and guidance.")
