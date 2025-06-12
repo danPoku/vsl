@@ -87,6 +87,8 @@ with st.sidebar:
 
         ]
     )
+    
+    currency = st.selectbox("Currency", ["GHS", "USD", "EUR", "GBP", "XOF", "SLL", "GMD"])
 
     sum_ins = st.number_input(
         "Sum Insured",
@@ -98,8 +100,6 @@ with st.sidebar:
         "Facultative Premium",
         min_value=0.0, step=100.0, format="%.2f"
     )
-
-    currency = st.selectbox("Currency", ["GHS", "USD"])
 
     brokerage = st.number_input("Brokerage",  min_value=0.0,
                                 value=200.0, step=10.0)
@@ -187,23 +187,22 @@ if predict_btn:
     st.markdown(
         """
         <style>
-            /* ensure metric text wraps instead of clipping */
-            div[data-testid="stMarkdownContainer"] div[data-testid="metric-container"] {
-                overflow-wrap: break-word;
-                white-space: normal;
-                font-size: 100px;
-            }
-            div[data-testid="stMetricValue"]
             div[data-testid="stMarkdownContainer"] {
                 overflow-wrap: break-word;
                 white-space: normal;
+                font-size: 15px;
+            }
+            div[data-testid="stMetricValue"] {
+                overflow-wrap: break-word;
+                white-space: normal;
+                font-size: 12px;
             }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    # display flag as the premium comment
+    # Metrics display
     col1.markdown("**Premium Comment**")
     col1.markdown(
         f"<span style='color:{colour}; font-weight:bold'>{flag}</span>",
