@@ -173,7 +173,7 @@ if predict_btn:
 
     # ── Results metrics ────────────────────────────────────────────────────
     col1, col2, col3 = st.columns(3)
-    col1.metric("Predicted premium", fmt_currency(pred_prem, currency))
+    col1.metric("Premium Comment", fmt_currency(pred_prem, currency))
     col2.metric("Visal Model Predicted rate",   f"{pred_rate:.2%}")
     col3.metric("Predicted vs Actual Gap %",            f"{gap_pct:+.1f}%")
 
