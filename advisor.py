@@ -172,20 +172,54 @@ if predict_btn:
     gap_pct = (gap / pred_prem) * 100 if pred_prem else 0
 
     # ── Results metrics ────────────────────────────────────────────────────
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Premium Comment", fmt_currency(pred_prem, currency))
-    col2.metric("Average Acceptable Market Rate",   f"{pred_rate:.2%}")
-    col3.metric("Predicted vs Actual Gap %",            f"{gap_pct:+.1f}%")
+    col1, col2, col3, col4 = st.columns(4)
 
-    # colour flag
+    # flag colours and text
     if abs(gap_pct) <= 10:
         band, colour, flag = "ok",   "green",  "✅ Within normal range."
     elif gap_pct < -10:
         band, colour, flag = "under", "orange", "⚠ Under-priced."
     else:
         band, colour, flag = "over", "red",    "❌ Over-priced."
-    st.markdown(f"<span style='color:{colour}; font-weight:bold'>{flag}</span>",
-                unsafe_allow_html=True)
+
+    # display flag as the premium comment
+    col1.markdown("**Premium Comment**")
+    col1.markdown(
+        f"<span style='color:{colour}; font-weight:bold'>{flag}</span>",
+        unsafe_allow_html=True,
+    )
+
+    col2.metric("Average Acceptable Market Rate",   f"{pred_rate:.2%}")
+    col3.metric("Predicted vs Actual Gap %",            f"{gap_pct:+.1f}%")
+
+    # predicted premium range guidance
+    if pred_prem >= quoted_premium:
+        range_low, range_high = quoted_premium, pred_prem
+    else:
+        range_low, range_high = pred_prem, quoted_premium
+
+    range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
+    col4.metric("Visal Model Rating Guide", range_txt)
+
+    # style tweaks so metric content doesn't clip
+    st.markdown(
+        """
+        <style>
+            /* ensure metric text wraps instead of clipping */
+            div[data-testid="stMetric"] div[data-testid="metric-container"] {
+                overflow-wrap: break-word;
+                white-space: normal;
+                font-size: 0.9rem;
+            }
+            div[data-testid="stMetricLabel"],
+            div[data-testid="stMetricValue"] {
+                overflow-wrap: break-word;
+                white-space: normal;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # ── Advisory panel ─────────────────────────────────────────────────────
     advice = {
