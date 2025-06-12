@@ -192,7 +192,7 @@ if predict_btn:
                 white-space: normal;
                 font-size: 100px;
             }
-            div[data-testid="stMetricLabel"],
+            div[data-testid="stMetricValue"],
             div[data-testid="stMarkdownContainer"] {
                 overflow-wrap: break-word;
                 white-space: normal;
