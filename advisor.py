@@ -182,6 +182,26 @@ if predict_btn:
     else:
         band, colour, flag = "over", "red",    "❌ Over-priced."
 
+        # style tweaks so metric content doesn't clip
+    st.markdown(
+        """
+        <style>
+            /* ensure metric text wraps instead of clipping */
+            div[data-testid="stMetric"] div[data-testid="metric-container"] {
+                overflow-wrap: break-word;
+                white-space: normal;
+                font-size: 100px;
+            }
+            div[data-testid="stMetricLabel"],
+            div[data-testid="stMetricValue"] {
+                overflow-wrap: break-word;
+                white-space: normal;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     # display flag as the premium comment
     col1.markdown("**Premium Comment**")
     col1.markdown(
@@ -200,26 +220,6 @@ if predict_btn:
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
     col4.metric("Visal Model Rating Guide", range_txt)
-
-    # style tweaks so metric content doesn't clip
-    st.markdown(
-        """
-        <style>
-            /* ensure metric text wraps instead of clipping */
-            div[data-testid="stMetric"] div[data-testid="metric-container"] {
-                overflow-wrap: break-word;
-                white-space: normal;
-                font-size: 0.9rem;
-            }
-            div[data-testid="stMetricLabel"],
-            div[data-testid="stMetricValue"] {
-                overflow-wrap: break-word;
-                white-space: normal;
-            }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
 
     # ── Advisory panel ─────────────────────────────────────────────────────
     advice = {
