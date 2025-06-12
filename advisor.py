@@ -187,13 +187,13 @@ if predict_btn:
         """
         <style>
             /* ensure metric text wraps instead of clipping */
-            div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="metric-container"] {
+            div[data-testid="stMarkdownContainer"] div[data-testid="metric-container"] {
                 overflow-wrap: break-word;
                 white-space: normal;
                 font-size: 100px;
             }
             div[data-testid="stMetricLabel"],
-            div[data-testid="stHorizontalBlock"] {
+            div[data-testid="stMarkdownContainer"] {
                 overflow-wrap: break-word;
                 white-space: normal;
             }
