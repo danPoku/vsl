@@ -32,9 +32,9 @@ def load_band_lookup(csv_path: Path):
 band_lookup = load_band_lookup(Path(__file__).with_name("prem_adequacy_with_bands.csv"))
 
 band_desc = {
-    "low":        "Low premium payment defaulter",
-    "moderate":   "Moderate premium payment defaulter",
-    "high":       "High premium payment defaulter",
+    "low":        "Low defaulter",
+    "moderate":   "Moderate defaulter",
+    "high":       "High defaulter",
 }
 
 # ── 2. Utility: currency formatter ─────────────────────────────────────────
@@ -291,7 +291,7 @@ if predict_btn:
     # Reinsurer default band
     band_key  = band_lookup.get(insurer, None)
     default_txt = band_desc.get(band_key, "No data available")
-    col4.metric(insurer, default_txt)
+    col4.metric("Insurer Premium Payment Profile", default_txt)
 
     # ── Advisory panel ─────────────────────────────────────────────────────
     advice_matrix = {
@@ -302,7 +302,7 @@ if predict_btn:
                 "👍 Fair premium and prompt payer – business as usual."
             ],
             "moderate": [
-                "👍 Rate is fine but this insurer can be slow – set clear due dates.",
+                "👍 Rate is fine but this insurer can be slow in payment – set clear due dates.",
                 "🙂 Deal works, yet chase invoices quickly.",
                 "⚠ Fair rate; settle premiums fast to keep terms."
             ],
@@ -324,7 +324,7 @@ if predict_btn:
                 "⚠ Low premium; pay promptly to avoid stricter terms."
             ],
             "high": [
-                "🚩 Very cheap and payer often late – ask for deposit or bank guarantee.",
+                "🚩 Very cheap but insurer often pays late – ask for deposit or bank guarantee.",
                 "🚩 Low commission plus high collection risk – rethink placement.",
                 "🚩 Premium may not cover risk; insist on cash up-front."
             ],
