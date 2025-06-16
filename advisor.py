@@ -413,14 +413,29 @@ if predict_btn:
 
     RQS = round(100 * (
         0.30 * price_score
-        + 0.20 * broker_score
-        + 0.20 * ded_score
-        + 0.20 * default_score
+        + 0.15 * broker_score
+        + 0.15 * ded_score
+        + 0.30 * default_score
         + 0.10 * lob_score
     ), 1)
 
-    rqs_colour = "green" if RQS >= 80 else "orange" if RQS >= 60 else "red"
-    rqs_text   = "Good" if RQS >= 80 else "Fair" if RQS >= 60 else "Poor"
+    # ── Map RQS → band, colour, one-liner -----------------------------------
+    if RQS >= 90:
+        rqs_band   = "A – Excellent"
+        rqs_colour = "green"
+        rqs_comment= "Top-tier submission; will quote aggressively."
+    elif RQS >= 75:                   # 75-89
+        rqs_band   = "B – Strong / Preferred"
+        rqs_colour = "#CEFA05"  # limegreen
+        rqs_comment= "Attractive risk; quote readily with minor tweaks."
+    elif RQS >= 60:                   # 60-74
+        rqs_band   = "C – Borderline / Conditional"
+        rqs_colour = "orange"
+        rqs_comment= "Quotable, but needs concessions or extra info."
+    else:                             # 0-59
+        rqs_band   = "D – Weak / Decline"
+        rqs_colour = "red"
+        rqs_comment= "Outside appetite; likely decline."
 
     # ── Row 2 – brokerage KPIs ─────────────────────────────────────────────
     br_col1, br_col2, br_col3 = st.columns(3)
@@ -436,9 +451,10 @@ if predict_btn:
     br_col2.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
 
     # 3 RQS (new)
-    br_col3.metric("Quotability Score (0 - 100)", f"{RQS:.2f}")
+    br_col3.metric("Reinsurance Quotability Score", f"{RQS}/100")
     br_col3.markdown(
-        f"<span style='color:{rqs_colour}; font-weight:bold'>({rqs_text})</span>",
+        f"<span style='color:{rqs_colour}; font-weight:bold'>{rqs_band}</span><br>"
+        f"<span style='font-size:0.85rem'>{rqs_comment}</span>",
         unsafe_allow_html=True
     )
 
