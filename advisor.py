@@ -202,6 +202,10 @@ with st.sidebar:
                                 value=5.0, step=1.0)
     commission = st.number_input("Commission %", min_value=0.0, max_value=100.0,
                                  value=26.0, step=0.1)
+    other_deductions = st.number_input(
+        "Other Deductions %",
+        min_value=0.0, step=10.0, value=0.0
+    )
 
     insurer = st.selectbox(
         "Insurer",
@@ -245,6 +249,9 @@ with st.sidebar:
     st.markdown("---")
     st.write("**Quoted Brokerage Fee**")
     st.info(fmt_currency(quoted_brokerage_fee, currency))
+    st.markdown("---")
+    st.write("**Total Deductions**")
+    st.info(f"{(brokerage + commission + other_deductions):.2f}%")
 
     predict_btn = st.button("Advise")
 
