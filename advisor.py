@@ -286,7 +286,7 @@ if predict_btn:
         
         
     # ── Results metrics ────────────────────────────────────────────────────
-    col1, col2, col3, col4, col5 = st.columns(5)
+    row1_col1, row1_col2, row1_col3, row1_col4 = st.columns(4)
 
     # flag colours and text
     lob_lo, lob_hi = bands_dict.get(
@@ -321,26 +321,26 @@ if predict_btn:
     )
 
     # Metrics display
-    col1.markdown("**Premium Comment**")
-    col1.markdown(
+    row1_col1.markdown("**Premium Comment**")
+    row1_col1.markdown(
         f"<span style='color:{colour}; font-weight:bold'>{flag}</span>",
         unsafe_allow_html=True,
     )
 
-    col2.metric("Average Acceptable Market Rate",   f"{pred_rate:.2%}")
+    row1_col2.metric("Average Acceptable Market Rate",   f"{pred_rate:.2%}")
 
     # predicted premium range guidance - ±1.96·MAE (95 % error band)
     range_low = max(0, pred_prem - 1.96 * MAE)
     range_high = pred_prem + 1.96 * MAE
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
-    col3.metric("Visal Model Rating Guide", range_txt)
+    row1_col3.metric("Visal Model Rating Guide", range_txt)
 
     # Reinsurer default band
     band_key = band_lookup.get(insurer, None)
     default_txt = band_desc.get(band_key, "No data available")
-    col4.metric("Insurer Premium Payment Profile", default_txt)
-    
+    row1_col4.metric("Insurer Premium Payment Profile", default_txt)
+
     # brokerage fairness – using ±1.96·MAE band
     br_low  = max(0, pred_broker_fee - 1.96 * BROKER_MAE)
     br_high = pred_broker_fee + 1.96 * BROKER_MAE
@@ -351,13 +351,19 @@ if predict_btn:
         br_colour, br_flag = "red",    "❌ High brokerage"
     else:
         br_colour, br_flag = "green",  "✅ Fair brokerage"
+    # ── Row 2 – brokerage KPIs ─────────────────────────────────────────────
+    br_col1, br_col2 = st.columns(2)
 
-    col5.markdown("**Brokerage Comment**")
-    col5.markdown(
+    # brokerage comment chip
+    br_col1.markdown("**Brokerage Comment**")
+    br_col1.markdown(
         f"<span style='color:{br_colour}; font-weight:bold'>{br_flag}</span>",
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
-    col5.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
+
+    # predicted brokerage rate
+    br_col2.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
+
 
     # ── Advisory panel ─────────────────────────────────────────────────────
     advice_matrix = {
