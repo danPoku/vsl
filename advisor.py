@@ -372,73 +372,109 @@ if predict_btn:
     br_col2.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
 
 
-    # ── Advisory panel ─────────────────────────────────────────────────────
-    advice_matrix = {
-        "ok": {
-            "low": [
-                "👍 Rate is fair and the insurer usually pays on time – good deal.",
-                "👍 Smooth placement; normal commission, low collection risk.",
-                "👍 Fair premium and prompt payer – business as usual."
-            ],
-            "moderate": [
-                "👍 Rate is fine but this insurer can be slow in payment – set clear due dates.",
-                "🙂 Deal works, yet chase invoices quickly.",
-                "⚠ Fair rate; settle premiums fast to keep terms."
-            ],
-            "high": [
-                "⚠ Good rate, yet insurer often pays late – add strict credit terms.",
-                "⚠ Commission OK, but expect follow-ups on payment.",
-                "⚠ Rate okay, history of arrears – cash before cover where possible."
-            ],
-        },
-        "under": {
-            "low": [
-                "⚠ Cheap cover from a reliable payer – be sure limits are enough.",
-                "😐 Lower commission but quick cash; confirm scope is adequate.",
-                "⚠ Thin premium – watch insurer's claims ratio."
-            ],
-            "moderate": [
-                "⚠ Cheap price and payer sometimes late – keep retention small.",
-                "⚠ Discounted premium; send reminders early.",
-                "⚠ Low premium; pay promptly to avoid stricter terms."
-            ],
-            "high": [
-                "🚩 Very cheap but insurer often pays late – ask for deposit or bank guarantee.",
-                "🚩 Low commission plus high collection risk – rethink placement.",
-                "🚩 Premium may not cover risk; insist on cash up-front."
-            ],
-        },
-        "over": {
-            "low": [
-                "❗ You’re paying more than needed, even with a good payer – negotiate down.",
-                "❗ Higher commission, but client may object; be ready.",
-                "🙂 Extra premium for you, payment likely on time – still overpriced."
-            ],
-            "moderate": [
-                "❗ Pricey and payer sometimes late – ask for a discount or staged payments.",
-                "❗ Commission up, but expect slower cash; manage client expectations.",
-                "⚠ High rate; pay quickly to keep cover active."
-            ],
-            "high": [
-                "🚨 Expensive and chronic late payer – high financial risk; consider other markets.",
-                "🚨 Commission good, but collection will be tough – advise cash before cover.",
-                "🚩 Overpriced cover; past arrears mean tight credit control or decline."
-            ],
-        },
+    # ──────────────────────────────────────────────────────────────────────────
+    #  A D V I S O R Y   E N G I N E   (premium · brokerage · deductions · default)
+    #  --------------------------------------------------------------------------
+    #  1.  classify each metric → simple bands
+    #  2.  derive a placement-difficulty score
+    #  3.  build plain-English messages for cedant, broker, reinsurer
+    # ──────────────────────────────────────────────────────────────────────────
+
+    # 1️⃣  ----- BAND CLASSIFIERS ----------------------------------------------
+
+    # premium_band already computed earlier  →  price_band  (under | ok | over)
+
+    # brokerage band  (low | fair | high)
+    if quoted_brokerage_fee < br_low:
+        br_band = "low"
+    elif quoted_brokerage_fee > br_high:
+        br_band = "high"
+    else:
+        br_band = "fair"
+
+    # deductions band  (acceptable | low | high)
+    total_deduct_pct = brokerage + commission          # add other deductions here
+    if 28 <= total_deduct_pct <= 38:
+        ded_band = "acceptable"
+    elif total_deduct_pct < 28:
+        ded_band = "low"
+    else:
+        ded_band = "high"
+
+    # insurer payment default band  → band_key  ("low"|"moderate"|"high") loaded earlier
+
+    # 2️⃣  ----- PLACEMENT DIFFICULTY SCORE ------------------------------------
+    score = 0
+    score += {"under": 2, "ok": 0, "over": 1}[price_band]
+    score += {"low": 0, "fair": 0, "high": 1}[br_band]
+    score += {"acceptable": 0, "low": 1, "high": 1}[ded_band]
+    score += {"low": 0, "moderate": 1, "high": 2}[band_key]
+
+    if score <= 1:
+        difficulty = "easy"
+    elif score <= 3:
+        difficulty = "moderate"
+    else:
+        difficulty = "difficult"
+
+    # 3️⃣  ----- MESSAGE TEMPLATES ---------------------------------------------
+
+    cedant_tmpl = {
+        ("under",):  "Premium is below model range – reinsurers may load or decline.",
+        ("ok",):     "Premium sits in the fair range.",
+        ("over",):   "Premium is above model range – client may overpay.",
     }
 
-    # ── ❷ Look up the three messages ------------------------------------------------
-    # "low" / "moderate" / "high"
-    band_key = band_lookup.get(insurer, None)
-    band_key = band_key if band_key in {"low", "moderate", "high"} else "low"
+    brokerage_tmpl = {
+        ("low",):    "Brokerage below peer level; revenue impact but appeals to reinsurer.",
+        ("fair",):   "Brokerage within peer range.",
+        ("high",):   "High brokerage – reinsurer will ask for justification.",
+    }
 
-    cedant_msg, broker_msg, reins_msg = advice_matrix[band][band_key]
+    ded_tmpl = {
+        "acceptable": "Total deductions are within the 28-38 % comfort zone.",
+        "low":        "Deductions below norm – reinsurer keeps more net premium.",
+        "high":       "Deductions above norm – reinsurer margin is thin.",
+    }
 
+    default_tmpl = {
+        "low":       "Insurer pays promptly.",
+        "moderate":  "Insurer sometimes late – credit terms needed.",
+        "high":      "Insurer often late – cash-before-cover likely.",
+    }
+
+    difficulty_msg = {
+        "easy":      "Placement looks easy.",
+        "moderate":  "Placement may need negotiation.",
+        "difficult": "Placement will be difficult – prepare alternatives.",
+    }
+
+    # 4️⃣  ----- BUILD FINAL ADVICE TEXTS --------------------------------------
+    cedant_msg  = " ".join([
+        cedant_tmpl[(price_band,)],
+        brokerage_tmpl[(br_band,)],
+        ded_tmpl[ded_band],
+        f"{difficulty_msg[difficulty]}"
+    ])
+
+    broker_msg  = (
+        f"{difficulty_msg[difficulty]}  "
+        f"Reasons: price **{price_band}**, brokerage **{br_band}**, "
+        f"deductions **{ded_band}**, insurer premium payment default profile **{band_key}**."
+    )
+
+    reins_msg   = " ".join([
+        default_tmpl[band_key],
+        cedant_tmpl[(price_band,)],
+        ded_tmpl[ded_band],
+        brokerage_tmpl[(br_band,)]
+    ])
+
+    # ── DISPLAY ----------------------------------------------------------------
     st.subheader("Implications")
     cA, cB, cC = st.columns(3)
-    cA.info(f"💼 **Cedant/Insurer**\n\n{cedant_msg}")
+    cA.info(f"💼 **Cedant / Insurer**\n\n{cedant_msg}")
     cB.warning(f"🤝 **Broker**\n\n{broker_msg}")
-    cC.error(f"🏢 **Reinsurance Market**\n\n{reins_msg}")
-
+    cC.error(f"🏢 **Reinsurer**\n\n{reins_msg}")
 else:
     st.write("⬅ Configure the policy on the left, then click **Advise** to see the benchmark premium and guidance.")
