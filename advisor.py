@@ -18,8 +18,13 @@ def load_model(path: Path):
 
 
 model = load_model(Path(__file__).with_name("visal_re_predictor.pkl"))
+broker_model = load_model(
+    Path(__file__).with_name("brokerage_predictor.pkl")
+)
 
 # ── Load reinsurer default-band lookup ────────────────────────────────
+
+
 @st.cache_data
 def load_band_lookup(csv_path: Path):
     df_band = (
@@ -29,7 +34,9 @@ def load_band_lookup(csv_path: Path):
     )
     return dict(zip(df_band["reinsured"], df_band["band"]))
 
-band_lookup = load_band_lookup(Path(__file__).with_name("prem_adequacy_with_bands.csv"))
+
+band_lookup = load_band_lookup(
+    Path(__file__).with_name("prem_adequacy_with_bands.csv"))
 
 band_desc = {
     "low":        "Low defaulter",
@@ -37,20 +44,27 @@ band_desc = {
     "high":       "High defaulter",
 }
 
+
 @st.cache_data
 def load_error_bands(csv_path: Path) -> dict:
     """Return {LOB: (lo80, hi80)} from lob_error_bands.csv."""
     df = pd.read_csv(csv_path).set_index("business_name")
     return {lob: (row.lo80, row.hi80) for lob, row in df.iterrows()}
 
+
 @st.cache_data
 def load_model_meta(json_path: Path) -> dict:
     import json
     return json.loads(Path(json_path).read_text())
 
+
 bands_dict = load_error_bands(Path(__file__).with_name("lob_error_bands.csv"))
-meta       = load_model_meta(Path(__file__).with_name("model_meta.json"))
-MAE        = meta["mae"]          # overall MAE saved during training
+meta = load_model_meta(Path(__file__).with_name("model_meta.json"))
+broker_meta = load_model_meta(
+    Path(__file__).with_name("broker_model_meta.json")
+)
+MAE = meta["mae"]          # overall MAE saved during training
+BROKER_MAE = broker_meta["mae"]   # overall MAE saved during training
 
 # ── 2. Utility: currency formatter ─────────────────────────────────────────
 
@@ -224,13 +238,13 @@ with st.sidebar:
 
     # Calculate quoted fac rate and brokerage
     quoted_fac_rate = (premium_input / sum_ins * 100) if sum_ins else 0.0
-    quoted_brokerage_rate = (brokerage/100) * premium_input
+    quoted_brokerage_fee = (brokerage/100) * premium_input
     st.markdown("---")
     st.write("**Quoted Facultative Rate(%)**")
     st.info(f"{quoted_fac_rate:.2f}")
     st.markdown("---")
     st.write("**Quoted Brokerage Fee**")
-    st.info(f"{quoted_brokerage_rate:.2f}")
+    st.info(fmt_currency(quoted_brokerage_fee, currency))
 
     predict_btn = st.button("Advise")
 
@@ -248,17 +262,35 @@ if predict_btn:
         "reinsured":       insurer
     }])
 
-    # run prediction
+    bro_row = pd.DataFrame([{
+        "fac_sum_insured": sum_ins,
+        "fac_premium":     premium_input,
+        "business_name":   business,
+        "commission":      commission,
+        "reinsured":       insurer
+    }])
+
+    # run premium prediction
     pred_prem = float(model.predict(row)[0])
     pred_rate = pred_prem / sum_ins if sum_ins else 0
     gap = premium_input - pred_prem
     gap_pct = (gap / pred_prem) * 100 if pred_prem else 0
 
+    # run brokerage prediction
+    pred_broker_fee = float(broker_model.predict(bro_row)[
+                            0])               # currency
+    pred_broker_rate = (pred_broker_fee / premium_input *
+                        100) if premium_input else 0
+    broker_gap_pct = 100 * (quoted_brokerage_fee - pred_broker_fee) / \
+        pred_broker_fee if pred_broker_fee else 0
+        
+        
     # ── Results metrics ────────────────────────────────────────────────────
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
     # flag colours and text
-    lob_lo, lob_hi = bands_dict.get(business, (-10, 10))  # fallback if LOB missing
+    lob_lo, lob_hi = bands_dict.get(
+        business, (-10, 10))  # fallback if LOB missing
 
     if gap_pct < lob_lo:
         price_band, colour, flag = "under", "orange", "⚠ Under-priced."
@@ -266,10 +298,10 @@ if predict_btn:
         price_band, colour, flag = "over",  "red",    "❌ Over-priced."
     else:
         price_band, colour, flag = "ok",    "green",  "✅ Within normal range."
-    
+
     band = price_band
 
-        # style tweaks so metric content doesn't clip
+    # style tweaks so metric content doesn't clip
     st.markdown(
         """
         <style>
@@ -298,16 +330,34 @@ if predict_btn:
     col2.metric("Average Acceptable Market Rate",   f"{pred_rate:.2%}")
 
     # predicted premium range guidance - ±1.96·MAE (95 % error band)
-    range_low  = max(0, pred_prem - 1.96 * MAE)
-    range_high = pred_prem + 1.96 * MAE 
+    range_low = max(0, pred_prem - 1.96 * MAE)
+    range_high = pred_prem + 1.96 * MAE
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
     col3.metric("Visal Model Rating Guide", range_txt)
-    
+
     # Reinsurer default band
-    band_key  = band_lookup.get(insurer, None)
+    band_key = band_lookup.get(insurer, None)
     default_txt = band_desc.get(band_key, "No data available")
     col4.metric("Insurer Premium Payment Profile", default_txt)
+    
+    # brokerage fairness – using ±1.96·MAE band
+    br_low  = max(0, pred_broker_fee - 1.96 * BROKER_MAE)
+    br_high = pred_broker_fee + 1.96 * BROKER_MAE
+
+    if quoted_brokerage_fee < br_low:
+        br_colour, br_flag = "orange", "⚠ Low brokerage"
+    elif quoted_brokerage_fee > br_high:
+        br_colour, br_flag = "red",    "❌ High brokerage"
+    else:
+        br_colour, br_flag = "green",  "✅ Fair brokerage"
+
+    col5.markdown("**Brokerage Comment**")
+    col5.markdown(
+        f"<span style='color:{br_colour}; font-weight:bold'>{br_flag}</span>",
+        unsafe_allow_html=True,
+    )
+    col5.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
 
     # ── Advisory panel ─────────────────────────────────────────────────────
     advice_matrix = {
@@ -365,8 +415,9 @@ if predict_btn:
     }
 
     # ── ❷ Look up the three messages ------------------------------------------------
-    band_key  = band_lookup.get(insurer, None)            # "low" / "moderate" / "high"
-    band_key  = band_key if band_key in {"low","moderate","high"} else "low"
+    # "low" / "moderate" / "high"
+    band_key = band_lookup.get(insurer, None)
+    band_key = band_key if band_key in {"low", "moderate", "high"} else "low"
 
     cedant_msg, broker_msg, reins_msg = advice_matrix[band][band_key]
 
