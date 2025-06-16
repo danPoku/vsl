@@ -423,11 +423,11 @@ if predict_btn:
     if RQS >= 90:
         rqs_band   = "A – Excellent"
         rqs_colour = "green"
-        rqs_comment= "Top-tier submission; will quote aggressively."
+        rqs_comment= "Top-tier submission; quote confidently."
     elif RQS >= 75:                   # 75-89
         rqs_band   = "B – Strong / Preferred"
         rqs_colour = "#CEFA05"  # limegreen
-        rqs_comment= "Attractive risk; quote readily with minor tweaks."
+        rqs_comment= "Attractive risk; quote with minor tweaks."
     elif RQS >= 60:                   # 60-74
         rqs_band   = "C – Borderline / Conditional"
         rqs_colour = "orange"
