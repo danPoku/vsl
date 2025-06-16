@@ -175,17 +175,17 @@ with st.sidebar:
 
     sum_ins = st.number_input(
         "Sum Insured",
-        min_value=0.0, step=1000.0, format="%.2f"
+        min_value=0.0, step=1000.0
     )
 
     # User supplies premium figure, rate is auto-derived
     premium_input = st.number_input(
         "Premium",
-        min_value=0.0, step=100.0, format="%.2f"
+        min_value=0.0, step=100.0
     )
 
-    brokerage = st.number_input("Brokerage",  min_value=0.0,
-                                value=200.0, step=10.0)
+    brokerage = st.number_input("Brokerage Rate %",  min_value=0.0, max_value=100.0,
+                                value=5.0, step=1.0)
     commission = st.number_input("Commission %", min_value=0.0, max_value=100.0,
                                  value=26.0, step=0.1)
 
@@ -224,13 +224,12 @@ with st.sidebar:
 
     # Calculate quoted fac rate and brokerage
     quoted_fac_rate = (premium_input / sum_ins * 100) if sum_ins else 0.0
-    quoted_brokerage_rate = (
-        brokerage / premium_input * 100) if premium_input else 0.0
+    quoted_brokerage_rate = (brokerage/100) * premium_input
     st.markdown("---")
     st.write("**Quoted Facultative Rate(%)**")
     st.info(f"{quoted_fac_rate:.2f}")
     st.markdown("---")
-    st.write("**Brokerage Rate(%)**")
+    st.write("**Quoted Brokerage Fee**")
     st.info(f"{quoted_brokerage_rate:.2f}")
 
     predict_btn = st.button("Advise")
