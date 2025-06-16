@@ -37,6 +37,21 @@ band_desc = {
     "high":       "High defaulter",
 }
 
+@st.cache_data
+def load_error_bands(csv_path: Path) -> dict:
+    """Return {LOB: (lo80, hi80)} from lob_error_bands.csv."""
+    df = pd.read_csv(csv_path).set_index("business_name")
+    return {lob: (row.lo80, row.hi80) for lob, row in df.iterrows()}
+
+@st.cache_data
+def load_model_meta(json_path: Path) -> dict:
+    import json
+    return json.loads(Path(json_path).read_text())
+
+bands_dict = load_error_bands(Path(__file__).with_name("lob_error_bands.csv"))
+meta       = load_model_meta(Path(__file__).with_name("model_meta.json"))
+MAE        = meta["mae"]          # overall MAE saved during training
+
 # ── 2. Utility: currency formatter ─────────────────────────────────────────
 
 
@@ -244,12 +259,16 @@ if predict_btn:
     col1, col2, col3, col4 = st.columns(4)
 
     # flag colours and text
-    if abs(gap_pct) <= 10:
-        band, colour, flag = "ok",   "green",  "✅ Within normal range."
-    elif gap_pct < -10:
-        band, colour, flag = "under", "orange", "⚠ Under-priced."
+    lob_lo, lob_hi = bands_dict.get(business, (-10, 10))  # fallback if LOB missing
+
+    if gap_pct < lob_lo:
+        price_band, colour, flag = "under", "orange", "⚠ Under-priced."
+    elif gap_pct > lob_hi:
+        price_band, colour, flag = "over",  "red",    "❌ Over-priced."
     else:
-        band, colour, flag = "over", "red",    "❌ Over-priced."
+        price_band, colour, flag = "ok",    "green",  "✅ Within normal range."
+    
+    band = price_band
 
         # style tweaks so metric content doesn't clip
     st.markdown(
@@ -279,11 +298,9 @@ if predict_btn:
 
     col2.metric("Average Acceptable Market Rate",   f"{pred_rate:.2%}")
 
-    # predicted premium range guidance
-    if pred_prem >= premium_input:
-        range_low, range_high = math.sqrt(premium_input * pred_prem), pred_prem
-    else:
-        range_low, range_high = pred_prem, math.sqrt(premium_input * pred_prem)
+    # predicted premium range guidance - ±1.96·MAE (95 % error band)
+    range_low  = max(0, pred_prem - 1.96 * MAE)
+    range_high = pred_prem + 1.96 * MAE 
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
     col3.metric("Visal Model Rating Guide", range_txt)
