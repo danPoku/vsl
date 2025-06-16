@@ -244,7 +244,7 @@ with st.sidebar:
     quoted_fac_rate = (premium_input / sum_ins * 100) if sum_ins else 0.0
     quoted_brokerage_fee = (brokerage/100) * premium_input
     st.markdown("---")
-    st.write("**Quoted Facultative Rate(%)**")
+    st.write("**Quoted Rate(%)**")
     st.info(f"{quoted_fac_rate:.2f}")
     st.markdown("---")
     st.write("**Quoted Brokerage Fee**")
@@ -358,19 +358,7 @@ if predict_btn:
         br_colour, br_flag = "red",    "❌ High brokerage"
     else:
         br_colour, br_flag = "green",  "✅ Fair brokerage"
-    # ── Row 2 – brokerage KPIs ─────────────────────────────────────────────
-    br_col1, br_col2 = st.columns(2)
-
-    # brokerage comment chip
-    br_col1.markdown("**Brokerage Comment**")
-    br_col1.markdown(
-        f"<span style='color:{br_colour}; font-weight:bold'>{br_flag}</span>",
-        unsafe_allow_html=True
-    )
-
-    # predicted brokerage rate
-    br_col2.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
-
+        
 
     # ──────────────────────────────────────────────────────────────────────────
     #  A D V I S O R Y   E N G I N E   (premium · brokerage · deductions · default)
@@ -402,6 +390,57 @@ if predict_btn:
         ded_band = "high"
 
     # insurer payment default band  → band_key  ("low"|"moderate"|"high") loaded earlier
+        # ── RQS – Reinsurance Quotability Score ----------------------------------
+    price_score   = {"under": 0.5, "ok": 1.0, "over": 0.8}[price_band]
+    broker_score  = {"low": 0.8, "fair": 1.0, "high": 0.6}[br_band]
+
+    if ded_band == "acceptable":
+        ded_score = 1.0
+    elif ded_band == "low":
+        ded_score = 0.9
+    elif total_deduct_pct <= 45:
+        ded_score = 0.6
+    else:                                 # >45 %
+        ded_score = 0.3
+
+    default_score = {"low": 1.0, "moderate": 0.7, "high": 0.4}[band_key]
+
+    hi_risk_lobs = {
+        "Aviation", "Marine", "Performance Bond", "Energy Generation",
+        "Motor Comprehensive (Automobile Fac Facility)"
+    }
+    lob_score = 0.6 if business in hi_risk_lobs else 1.0
+
+    RQS = round(100 * (
+        0.30 * price_score
+        + 0.20 * broker_score
+        + 0.20 * ded_score
+        + 0.20 * default_score
+        + 0.10 * lob_score
+    ), 1)
+
+    rqs_colour = "green" if RQS >= 80 else "orange" if RQS >= 60 else "red"
+    rqs_text   = "Good" if RQS >= 80 else "Fair" if RQS >= 60 else "Poor"
+
+    # ── Row 2 – brokerage KPIs ─────────────────────────────────────────────
+    br_col1, br_col2, br_col3 = st.columns(3)
+
+    # 1 brokerage comment chip
+    br_col1.markdown("**Brokerage Comment**")
+    br_col1.markdown(
+        f"<span style='color:{br_colour}; font-weight:bold'>{br_flag}</span>",
+        unsafe_allow_html=True
+    )
+
+    # 2 predicted brokerage rate
+    br_col2.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
+
+    # 3 RQS (new)
+    br_col3.metric("Quotability Score (0 - 100)", f"{RQS:.2f}")
+    br_col3.markdown(
+        f"<span style='color:{rqs_colour}; font-weight:bold'>({rqs_text})</span>",
+        unsafe_allow_html=True
+    )
 
     # 2️⃣  ----- PLACEMENT DIFFICULTY SCORE ------------------------------------
     score = 0
