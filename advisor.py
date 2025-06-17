@@ -244,10 +244,10 @@ with st.sidebar:
     quoted_fac_rate = (premium_input / sum_ins * 100) if sum_ins else 0.0
     quoted_brokerage_fee = (brokerage/100) * premium_input
     st.markdown("---")
-    st.write("**Quoted Rate(%)**")
+    st.write("**Placement Rate(%)**")
     st.info(f"{quoted_fac_rate:.2f}")
     st.markdown("---")
-    st.write("**Quoted Brokerage Fee**")
+    st.write("**Placement Brokerage Fee**")
     st.info(fmt_currency(quoted_brokerage_fee, currency))
     st.markdown("---")
     st.write("**Total Deductions**")
@@ -256,7 +256,7 @@ with st.sidebar:
     predict_btn = st.button("Advise")
 
 # ── 4. Main panel – prediction & advisories ────────────────────────────────
-st.title("📊 Reinsurance Quotation Index")
+st.title("📊 Reinsurance Placement Index")
 
 if predict_btn:
     # build feature frame for the model
@@ -423,15 +423,15 @@ if predict_btn:
     if RQS >= 90:
         rqs_band   = "A – Excellent"
         rqs_colour = "green"
-        rqs_comment= "Top-tier submission; quote confidently."
+        rqs_comment= "Top-tier submission; place confidently."
     elif RQS >= 75:                   # 75-89
         rqs_band   = "B – Strong / Preferred"
         rqs_colour = "#CEFA05"  # limegreen
-        rqs_comment= "Attractive risk; quote with minor tweaks."
+        rqs_comment= "Attractive risk; place with minor tweaks."
     elif RQS >= 60:                   # 60-74
         rqs_band   = "C – Borderline / Conditional"
         rqs_colour = "orange"
-        rqs_comment= "Quotable, but needs concessions or extra info."
+        rqs_comment= "Placement feasible, but needs concessions or extra info."
     else:                             # 0-59
         rqs_band   = "D – Weak / Decline"
         rqs_colour = "red"
@@ -451,7 +451,7 @@ if predict_btn:
     br_col2.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
 
     # 3 RQS (new)
-    br_col3.metric("Reinsurance Quotability Score", f"{RQS}/100")
+    br_col3.metric("Reinsurance Placement Score", f"{RQS}/100")
     br_col3.markdown(
         f"<span style='color:{rqs_colour}; font-weight:bold'>{rqs_band}</span><br>"
         f"<span style='font-size:0.85rem'>{rqs_comment}</span>",
@@ -477,7 +477,7 @@ if predict_btn:
     cedant_tmpl = {
         ("under",):  "Premium is below model range – reinsurers may load or decline.",
         ("ok",):     "Premium sits in the fair range.",
-        ("over",):   "Premium is above model range – client may overpay.",
+        ("over",):   "Premium is above model range – client may be overpaying.",
     }
 
     brokerage_tmpl = {
@@ -514,13 +514,13 @@ if predict_btn:
 
     broker_msg  = (
         f"{difficulty_msg[difficulty]}  "
-        f"Reasons: price **{price_band}**, brokerage **{br_band}**, "
-        f"deductions **{ded_band}**, insurer premium payment default profile **{band_key}**."
+        f"Reasons: price: **{price_band}**, brokerage: **{br_band}**, "
+        f"deductions: **{ded_band}**, insurer premium payment default profile **{band_key}**."
     )
 
     reins_msg   = " ".join([
         default_tmpl[band_key],
-        cedant_tmpl[(price_band,)],
+        # cedant_tmpl[(price_band,)],
         ded_tmpl[ded_band],
         brokerage_tmpl[(br_band,)]
     ])
