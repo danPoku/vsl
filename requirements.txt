@@ -4,5 +4,5 @@ scikit-learn==1.5.0
 scipy<1.13
 xgboost==2.0.*
 numpy==1.26.*
-gspread==5.7.0
-google-auth==2.28.1
+gspread>=6.2
+google-auth>=2.28
