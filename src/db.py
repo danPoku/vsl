@@ -1,5 +1,11 @@
+import os
+from dotenv import load_dotenv
 import sqlite3
 from datetime import datetime
+import gspread
+from google.oauth2.service_account import Credentials
+
+load_dotenv()
 
 DB_PATH = "database/submissions.db"
 
@@ -72,3 +78,50 @@ def log_submission(data: dict):
     ))
     conn.commit()
     conn.close()
+    
+
+SERVICE_ACCOUNT_INFO = os.environ.get("GOOGLE_SERVICE_ACCOUNT_INFO")
+# SERVICE_ACCOUNT_INFO = GOOGLE_SERVICE_ACCOUNT_JSON
+
+# Google Sheet
+SHEET_NAME = os.environ.get("GOOGLE_SHEET_NAME")
+
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
+def get_sheet():
+    creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO, scopes=scope)
+    client = gspread.authorize(creds)
+    sheet = client.open(SHEET_NAME).sheet1 
+    return sheet
+
+def log_submission_gsheets(data: dict):
+    sheet = get_sheet()
+    # Count non-empty rows (assuming first row is header)
+    existing_records = len([row for row in sheet.get_all_values() if any(row)])
+    next_id = existing_records
+    row = [
+        next_id,
+        datetime.now().isoformat(),
+        data.get("fac_sum_insured"),
+        data.get("business_name"),
+        data.get("risk_occupation"),
+        data.get("currency"),
+        data.get("brokerage"),
+        data.get("commission"),
+        data.get("reinsured"),
+        data.get("premium_input"),
+        data.get("pred_prem"),
+        data.get("pred_rate"),
+        data.get("prem_mae"),
+        data.get("confidence_interval"),
+        data.get("prem_range_low"),
+        data.get("prem_range_high"),
+        data.get("quoted_brokerage_fee"),
+        data.get("pred_broker_fee"),
+        data.get("pred_broker_rate"),
+        data.get("broker_mae"),
+        data.get("broker_confidence_interval"),
+        data.get("br_range_low"),
+        data.get("br_range_high"),
+    ]
+    sheet.append_row(row)
