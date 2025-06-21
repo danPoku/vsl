@@ -268,6 +268,21 @@ with st.sidebar:
     colR1, colR2 = st.columns(2)
     advise_btn = colR1.button("Advise")
     reset_btn = colR2.button("Reset")
+    
+    DEFAULTS = {
+    # select-boxes
+    "business": BUSINESS_OPTIONS[0],             # "CONTRACTOR'S ALL RISKS"
+    "risk_occupation": OCC_OPTIONS[0],           # "Agribusiness"
+    "currency": "GHS",
+    "insurer": INSURER_OPTIONS[0],               # "Vanguard Assurance …"
+
+    # number-inputs  (floats)
+    "sum_insured":      0.0,
+    "premium":          0.0,
+    "brokerage":        5.0,     # default you set in number_input
+    "commission":      26.0,
+    "other_deductions": 0.0,
+    }
 
 # ── 4. Main panel – prediction & advisories ────────────────────────────────
 st.title("📊 Reinsurance Placement Index")
@@ -566,8 +581,8 @@ if advise_btn:
     log_submission_gsheets(log_data)
 elif reset_btn:
     # Wipe all inputs
-    for k in list(st.session_state.keys()):
-        del st.session_state[k]
+    for key, default_val in DEFAULTS.items():
+        st.session_state[key] = default_val
     st.experimental_rerun()   
 else:
     st.write("⬅ Configure the policy on the left, then click **Advise** to see the benchmark premium and guidance.")
