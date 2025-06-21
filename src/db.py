@@ -21,13 +21,14 @@ def init_db():
             pred_prem REAL,
             pred_rate REAL,
             prem_mae REAL,
-            confidence_interval REAL,
+            prem_confidence_interval REAL,
             prem_range_low REAL,
             prem_range_high REAL,
             quoted_brokerage_fee REAL,
             pred_broker_fee REAL,
             pred_broker_rate REAL,
             broker_mae REAL,
+            broker_confidence_interval REAL,
             br_range_low REAL,
             br_range_high REAL
         )
@@ -41,10 +42,10 @@ def log_submission(data: dict):
     c.execute("""
         INSERT INTO submissions (
             timestamp, fac_sum_insured, business_name, risk_occupation, currency, brokerage, commission,
-            reinsured, premium_input, pred_prem, pred_rate, prem_mae, confidence_interval, 
+            reinsured, premium_input, pred_prem, pred_rate, prem_mae, prem_confidence_interval, 
             prem_range_low, prem_range_high, quoted_brokerage_fee, pred_broker_fee, 
-            pred_broker_rate, broker_mae, br_range_low, br_range_high
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            pred_broker_rate, broker_mae, broker_confidence_interval, br_range_low, br_range_high
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         datetime.now().isoformat(),
         data.get("fac_sum_insured"),
@@ -65,6 +66,7 @@ def log_submission(data: dict):
         data.get("pred_broker_fee"),
         data.get("pred_broker_rate"),
         data.get("broker_mae"),
+        data.get("broker_confidence_interval"),
         data.get("br_range_low"),
         data.get("br_range_high")
     ))

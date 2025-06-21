@@ -20,7 +20,7 @@ def load_model(path: Path):
 model = load_model(Path(__file__).parent.parent / "models" /
                    "predictors" / "visal_re_predictor.pkl")
 broker_model = load_model(Path(__file__).parent.parent / "models" /
-                        "predictors" / "brokerage_predictor.pkl")
+                          "predictors" / "brokerage_predictor.pkl")
 
 # ── Load reinsurer default-band lookup ────────────────────────────────
 
@@ -61,13 +61,15 @@ def load_model_meta(json_path: Path) -> dict:
 bands_dict = load_error_bands(
     Path(__file__).parent.parent / "data" / "lob_error_bands.csv")
 # Load model metadata
-meta = load_model_meta(Path(__file__).parent.parent / "models" / "meta" / 
+meta = load_model_meta(Path(__file__).parent.parent / "models" / "meta" /
                        "model_meta_v2.json")
-broker_meta = load_model_meta(Path(__file__).parent.parent / "models" / "meta" / 
-                       "broker_model_meta.json")
+broker_meta = load_model_meta(Path(__file__).parent.parent / "models" / "meta" /
+                              "broker_model_meta.json")
 
 # Extract metadata
-CONFIDENCE_INTERVAL = 1.96
+PREM_CONFIDENCE_INTERVAL = 1.96 # 95% confidence interval
+BRK_CONFIDENCE_INTERVAL = 1.28 # 80% confidence interval
+                                
 MAE = meta["mae"]          # overall MAE saved during training
 MAE_PCT = meta["mae_pct"]    # overall MAE saved during training, as percentage
 BROKER_MAE = broker_meta["mae"]   # overall MAE saved during training
@@ -289,13 +291,9 @@ if predict_btn:
     gap = premium_input - pred_prem
     gap_pct = (gap / pred_prem) * 100 if pred_prem else 0
 
-    # run brokerage prediction
-    pred_broker_fee = float(broker_model.predict(bro_row)[
-                            0])               # currency
-    pred_broker_rate = (pred_broker_fee / premium_input *
-                        100) if premium_input else 0
-    broker_gap_pct = 100 * (quoted_brokerage_fee - pred_broker_fee) / \
-        pred_broker_fee if pred_broker_fee else 0
+    # Sound premium threshold (not less than 50% of predicted premium)
+    SOUND_PREMIUM_THRESHOLD = 0.5
+    is_premium_sound = (premium_input >= SOUND_PREMIUM_THRESHOLD * pred_prem)
 
     # ── Results metrics ────────────────────────────────────────────────────
     row1_col1, row1_col2, row1_col3, row1_col4 = st.columns(4)
@@ -332,38 +330,52 @@ if predict_btn:
         unsafe_allow_html=True,
     )
 
-    # Metrics display
-    row1_col1.markdown("**Premium Comment**")
-    row1_col1.markdown(
-        f"<span style='color:{colour}; font-weight:bold'>{flag}</span>",
-        unsafe_allow_html=True,
-    )
-
-    row1_col2.metric("Average Acceptable Market Rate",   f"{pred_rate:.2%}")
-
     # predicted premium range guidance - ±1.96·MAE (95 % error band)
-    range_low = pred_prem - CONFIDENCE_INTERVAL * MAE
+    range_low = pred_prem - PREM_CONFIDENCE_INTERVAL * MAE
     if range_low < 0:
         # Use percentage-based formula if lower bound is negative
-        range_low = max(1, pred_prem * (1 - CONFIDENCE_INTERVAL * MAE_PCT))
+        range_low = max(1, pred_prem * (1 - PREM_CONFIDENCE_INTERVAL * MAE_PCT))
     else:
         # Use absolute value formula if lower bound is non-negative
         range_low = max(0, range_low)
-    range_high = pred_prem + CONFIDENCE_INTERVAL * MAE    
-    # range_low = max(1, pred_prem *(1 - CONFIDENCE_INTERVAL * MAE_PCT))
-    # range_high = pred_prem * (1 + CONFIDENCE_INTERVAL * MAE_PCT)
-
-    range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
-    row1_col3.metric("Visal Model Rating Guide", range_txt)
+    range_high = pred_prem + PREM_CONFIDENCE_INTERVAL * MAE
+    # range_low = max(1, pred_prem *(1 - PREM_CONFIDENCE_INTERVAL * MAE_PCT))
+    # range_high = pred_prem * (1 + PREM_CONFIDENCE_INTERVAL * MAE_PCT)
 
     # Reinsurer default band
     band_key = band_lookup.get(insurer, None)
     default_txt = band_desc.get(band_key, "No data available")
-    row1_col4.metric("Insurer Premium Payment Profile", default_txt)
 
-    # brokerage fairness – using ±1.96·MAE band
-    br_range_low = max(0, pred_broker_fee - CONFIDENCE_INTERVAL * BROKER_MAE)
-    br_range_high = pred_broker_fee + CONFIDENCE_INTERVAL * BROKER_MAE
+    # Metrics display
+    if sum_ins > 0:
+        row1_col1.markdown("**Premium Comment**")
+        row1_col1.markdown(
+            f"<span style='color:{colour}; font-weight:bold'>{flag}</span>",
+            unsafe_allow_html=True,
+        )
+
+        row1_col2.metric("Average Acceptable Market Rate",
+                         f"{pred_rate:.2%}")
+
+        range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
+        row1_col3.metric("Visal Model Rating Guide", range_txt)
+
+        row1_col4.metric("Insurer Premium Payment Profile", default_txt)
+    else:
+        st.warning("Enter a valid sum insured for model predictions")
+
+    # ── Row 2 – brokerage KPIs ─────────────────────────────────────────────
+    # run brokerage prediction
+    pred_broker_fee = float(broker_model.predict(bro_row)[
+        0])               # currency
+    pred_broker_rate = (pred_broker_fee / premium_input *
+                        100) if premium_input else 0
+    broker_gap_pct = 100 * (quoted_brokerage_fee - pred_broker_fee) / \
+        pred_broker_fee if pred_broker_fee else 0
+
+    # brokerage fairness – using ±1.28·MAE band
+    br_range_low = max(0, pred_broker_fee - BRK_CONFIDENCE_INTERVAL * BROKER_MAE)
+    br_range_high = pred_broker_fee + BRK_CONFIDENCE_INTERVAL * BROKER_MAE
 
     if quoted_brokerage_fee < br_range_low:
         br_colour, br_flag = "orange", "⚠ Low brokerage"
@@ -371,6 +383,22 @@ if predict_btn:
         br_colour, br_flag = "red",    "❌ High brokerage"
     else:
         br_colour, br_flag = "green",  "✅ Fair brokerage"
+
+    br_col1, br_col2, br_col3 = st.columns(3)
+
+    # Show brokerage metrics if premium is sound
+    if is_premium_sound:
+        # 1 brokerage comment chip
+        br_col1.markdown("**Brokerage Comment**")
+        br_col1.markdown(
+            f"<span style='color:{br_colour}; font-weight:bold'>{br_flag}</span>",
+            unsafe_allow_html=True
+        )
+        # 2 predicted brokerage rate
+        br_col2.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
+    else:
+        st.warning(
+            "Brokerage guidance is not shown as premium entered is either invalid or extremely below the model's predicted range")
 
     # ──────────────────────────────────────────────────────────────────────────
     #  A D V I S O R Y   E N G I N E   (premium · brokerage · deductions · default)
@@ -449,26 +477,16 @@ if predict_btn:
         rqs_colour = "red"
         rqs_comment = "Outside appetite; likely decline."
 
-    # ── Row 2 – brokerage KPIs ─────────────────────────────────────────────
-    br_col1, br_col2, br_col3 = st.columns(3)
-
-    # 1 brokerage comment chip
-    br_col1.markdown("**Brokerage Comment**")
-    br_col1.markdown(
-        f"<span style='color:{br_colour}; font-weight:bold'>{br_flag}</span>",
-        unsafe_allow_html=True
-    )
-
-    # 2 predicted brokerage rate
-    br_col2.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
-
     # 3 RQS (new)
-    br_col3.metric("Reinsurance Placement Score", f"{RQS}/100")
-    br_col3.markdown(
-        f"<span style='color:{rqs_colour}; font-weight:bold'>{rqs_band}</span><br>"
-        f"<span style='font-size:0.85rem'>{rqs_comment}</span>",
-        unsafe_allow_html=True
-    )
+    if is_premium_sound:
+        br_col3.metric("Reinsurance Placement Score", f"{RQS}/100")
+        br_col3.markdown(
+            f"<span style='color:{rqs_colour}; font-weight:bold'>{rqs_band}</span><br>"
+            f"<span style='font-size:0.85rem'>{rqs_comment}</span>",
+            unsafe_allow_html=True)
+    else:
+        st.warning(
+            "Placement score is not calculated as premium entered is is either invalid or extremely below the model's predicted range.")
 
     # 2️⃣  ----- PLACEMENT DIFFICULTY SCORE ------------------------------------
     score = 0
@@ -539,10 +557,13 @@ if predict_btn:
 
     # ── DISPLAY ----------------------------------------------------------------
     st.subheader("Implications")
-    cA, cB, cC = st.columns(3)
-    cA.info(f"💼 **Cedant / Insurer**\n\n{cedant_msg}")
-    cB.warning(f"🤝 **Broker**\n\n{broker_msg}")
-    cC.error(f"🏢 **Reinsurer**\n\n{reins_msg}")
+    if sum_ins > 0:
+        cA, cB, cC = st.columns(3)
+        cA.info(f"💼 **Cedant / Insurer**\n\n{cedant_msg}")
+        cB.warning(f"🤝 **Broker**\n\n{broker_msg}")
+        cC.error(f"🏢 **Reinsurer**\n\n{reins_msg}")
+    else:
+        st.warning("No advisory available")
 
     # ── Log submission to database ───────────────────────────────────────
     log_data = {
@@ -557,13 +578,14 @@ if predict_btn:
         "pred_prem": pred_prem,
         "pred_rate": pred_rate,
         "prem_mae": MAE,
-        "confidence_interval": CONFIDENCE_INTERVAL,
+        "prem_confidence_interval": PREM_CONFIDENCE_INTERVAL,
         "prem_range_low": range_low,
         "prem_range_high": range_high,
         "quoted_brokerage_fee": quoted_brokerage_fee,
         "pred_broker_fee": pred_broker_fee,
         "pred_broker_rate": pred_broker_rate,
         "broker_mae": BROKER_MAE,
+        "broker_confidence_interval": BRK_CONFIDENCE_INTERVAL,
         "br_range_low": br_range_low,
         "br_range_high": br_range_high,
     }
