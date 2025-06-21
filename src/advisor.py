@@ -271,10 +271,10 @@ with st.sidebar:
     
     DEFAULTS = {
     # select-boxes
-    "business": "",             # "CONTRACTOR'S ALL RISKS"
-    "risk_occupation": "",           # "Agribusiness"
+    "business": business[0],             # "CONTRACTOR'S ALL RISKS"
+    "risk_occupation": risk_occupation[0],           # "Agribusiness"
     "currency": "GHS",
-    "insurer": "",               # "Vanguard Assurance …"
+    "insurer": insurer[0],               # "Vanguard Assurance …"
 
     # number-inputs  (floats)
     "sum_insured":      0.0,
