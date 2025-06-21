@@ -90,6 +90,7 @@ with st.sidebar:
     business = st.selectbox(
         "Policy Type",
         [
+            "",
             "CONTRACTOR'S ALL RISKS",
             "Assets All Risks",
             "Commercial Fire",
@@ -142,12 +143,13 @@ with st.sidebar:
             "Temporary Exportation/Importation Bond",
             "Transit Bond",
 
-        ]
+        ], key="business"
     )
 
     risk_occupation = st.selectbox(
         "Risk Occupation",
         [
+            "",
             "Agribusiness",
             "Aluminium Processing",
             "Bank",
@@ -190,35 +192,36 @@ with st.sidebar:
             "Timber Processing",
             "Warehouse / Warehousing",
             "Wholesale Food Distributors",
-        ]
+        ], key="risk_occupation"
     )
 
     currency = st.selectbox(
-        "Currency", ["GHS", "USD", "EUR"])
+        "Currency", ["GHS", "USD", "EUR"], key="currency")
 
     sum_ins = st.number_input(
         "Sum Insured",
-        min_value=0.0, step=1000.0
+        min_value=0.0, key="sum_insured", step=1000.0
     )
 
     # User supplies premium figure, rate is auto-derived
     premium_input = st.number_input(
         "Premium",
-        min_value=0.0, step=100.0
+        min_value=0.0, key="premium", step=100.0
     )
 
     brokerage = st.number_input("Brokerage Rate %",  min_value=0.0, max_value=100.0,
-                                value=5.0, step=1.0)
+                                key="brokerage", value=5.0, step=1.0)
     commission = st.number_input("Commission %", min_value=0.0, max_value=100.0,
-                                 value=26.0, step=0.1)
+                                 key="commission", value=26.0, step=0.1)
     other_deductions = st.number_input(
         "Other Deductions %",
-        min_value=0.0, step=10.0, value=0.0
+        min_value=0.0, step=10.0, key="other_deductions", value=0.0
     )
 
     insurer = st.selectbox(
         "Insurer",
         [
+            "",
             "Vanguard Assurance Company Limited",
             "Bedrock Insurance Company Limited",
             "Best Assurance Company Limited",
@@ -246,7 +249,7 @@ with st.sidebar:
             "Priority Insurance Company Limited",
             "Cole Insurance Company Limited",
 
-        ]
+        ], key="insurer"
     )
 
     # Calculate quoted fac rate and brokerage
@@ -561,5 +564,10 @@ if advise_btn:
     }
     # log_submission(log_data)
     log_submission_gsheets(log_data)
+elif reset_btn:
+    # Wipe all inputs
+    for k in list(st.session_state.keys()):
+        del st.session_state[k]
+    st.experimental_rerun()   
 else:
     st.write("⬅ Configure the policy on the left, then click **Advise** to see the benchmark premium and guidance.")
