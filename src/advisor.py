@@ -261,13 +261,15 @@ with st.sidebar:
     st.markdown("---")
     st.write("**Total Deductions**")
     st.info(f"{(brokerage + commission + other_deductions):.2f}%")
-
-    predict_btn = st.button("Advise")
+    
+    colR1, colR2 = st.columns(2)
+    advise_btn = colR1.button("Advise")
+    reset_btn = colR2.button("Reset")
 
 # ── 4. Main panel – prediction & advisories ────────────────────────────────
 st.title("📊 Reinsurance Placement Index")
 
-if predict_btn:
+if advise_btn:
     # build feature frame for the model
     row = pd.DataFrame([{
         "fac_sum_insured": sum_ins,
