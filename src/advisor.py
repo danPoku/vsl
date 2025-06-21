@@ -261,9 +261,9 @@ with st.sidebar:
     st.write("**Total Deductions**")
     st.info(f"{(brokerage + commission + other_deductions):.2f}%")
 
-    colR1, colR2 = st.columns(2)
-    advise_btn = colR1.button("Advise")
-    reset_btn = colR2.button("Reset")
+    # colR1, colR2 = st.columns(2)
+    advise_btn = st.button("Advise")
+    # reset_btn = colR2.button("Reset")
 
     DEFAULTS = {
         # select-boxes
@@ -577,9 +577,9 @@ if advise_btn:
     }
     # log_submission(log_data)
     log_submission_gsheets(log_data)
-elif reset_btn:
+# elif reset_btn:
     # Wipe all inputs
-    for key, default_val in DEFAULTS.items():
-        st.session_state[key] = default_val
+    # for key, default_val in DEFAULTS.items():
+        # st.session_state[key] = default_val
 else:
     st.write("⬅ Configure the policy on the left, then click **Advise** to see the benchmark premium and guidance.")
