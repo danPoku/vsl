@@ -1,11 +1,8 @@
 import os
-from dotenv import load_dotenv
 import sqlite3
 from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
-
-load_dotenv()
 
 DB_PATH = "database/submissions.db"
 
