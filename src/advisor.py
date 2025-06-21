@@ -68,13 +68,139 @@ broker_meta = load_model_meta(Path(__file__).parent.parent / "models" / "meta" /
                               "broker_model_meta.json")
 
 # Extract metadata
-PREM_CONFIDENCE_INTERVAL = 1.96 # 95% confidence interval
-BRK_CONFIDENCE_INTERVAL = 1.28 # 80% confidence interval
-                                
+PREM_CONFIDENCE_INTERVAL = 1.96  # 95% confidence interval
+BRK_CONFIDENCE_INTERVAL = 1.28  # 80% confidence interval
+
 MAE = meta["mae"]          # overall MAE saved during training
 MAE_PCT = meta["mae_pct"]    # overall MAE saved during training, as percentage
 BROKER_MAE = broker_meta["mae"]   # overall MAE saved during training
-
+POLICY_OPTIONS = ["",
+                  "CONTRACTOR'S ALL RISKS",
+                  "Assets All Risks",
+                  "Commercial Fire",
+                  "Goods In Transit",
+                  "Motor Comprehensive",
+                  "Performance Bond",
+                  "Erection All Risks",
+                  "Machinery Breakdown",
+                  "Money Insurance",
+                  "Motor Comprehensive Fleet",
+                  "Public Liability",
+                  "Group Personal Accident",
+                  "Directors & Officers Liability",
+                  "Removal Bond",
+                  "General Exportation Bond",
+                  "Industrial Fire",
+                  "General Premises Bond",
+                  "Workmen's Compensation",
+                  "Advance Payment Guarantee",
+                  "Security Bond(Customs & Excise Bond)",
+                  "Temporary Importation Bond",
+                  "Professional Indemnity",
+                  "Bankers Blanket Indemnity",
+                  "Fire & Allied Perils",
+                  "Motor Third Party Fire & Theft",
+                  "Contractors Plant & Machinery",
+                  "Motor Third Party Liability",
+                  "Fidelity Guarantee",
+                  "Public/Product Liability",
+                  "Business Interruption",
+                  "Cash In Transit",
+                  "Boiler & Pressure Plant",
+                  "Bankers Blanket Bond",
+                  "Plant & Machinery",
+                  "Bid Bond",
+                  "Customs Warehouse Bond",
+                  "Electronic Equipment Insurance",
+                  "Fire Assets All Risks and Business Interruption",
+                  "Fire Loss Profit",
+                  "Property All Risks, Machinery Breakdown & Business Interruption",
+                  "Motor Comprehensive (Automobile Fac Facility)",
+                  "Contractual Liability",
+                  "Advance Payment Bond",
+                  "Fire",
+                  "Petroleum Bond",
+                  "Motor Comprehensive Fleet (Automobile Fac Facility)",
+                  "Environmental, Social, Health and Safety (ESHS) Performance Bond",
+                  "Deterioration of Stock",
+                  "Cole Class Of Business",
+                  "Temporary Exportation/Importation Bond",
+                  "Transit Bond",
+                  ]
+OCC_OPTIONS = [
+    "",
+    "Agribusiness",
+    "Aluminium Processing",
+    "Bank",
+    "BDC Petroleum Company",
+    "Cable Manufacturing",
+    "Car Dealership",
+    "Ceramics Manufacturing",
+    "Construction",
+    "Corrugated Cardboard Production",
+    "Canned Seafoods Manufacturing",
+    "Education",
+    "Energy Generation",
+    "Ethanol Distillery",
+    "Food Manufacturing",
+    "Flour Production",
+    "Furniture Store",
+    "Gold Refinery",
+    "Gold Trading / Refinery",
+    "Heavy-Duty Vehicle Dealership",
+    "Hotelier",
+    "ICT Solutions",
+    "ID Manufacturing / Processing",
+    "Import / Export of Electrical Products",
+    "IT Solutions",
+    "Logistics",
+    "Mining",
+    "Packaging Solutions",
+    "Petroleum Retailing",
+    "Petroleum Trading",
+    "Pipes Manufacturing",
+    "Pre-fab Building Manufacturer",
+    "Real Estate",
+    "Residential Unit",
+    "Restaurant",
+    "Restaurant Chain",
+    "Security Services",
+    "Solar Panel Distribution",
+    "Steel Manufacturing",
+    "Supermarket",
+    "Timber Processing",
+    "Warehouse / Warehousing",
+    "Wholesale Food Distributors",
+]
+INSURER_OPTIONS = [
+    "",
+    "Vanguard Assurance Company Limited",
+    "Bedrock Insurance Company Limited",
+    "Best Assurance Company Limited",
+    "Loyalty Insurance Company Limited",
+    "SIC Insurance PLC",
+    "Millennium Insurance Company Limited",
+    "RegencyNem Insurance Company",
+    "Ghana Union Assurance Limited",
+    "Unique Insurance Company Limited",
+    "Donewell Insurance Limited",
+    "Hollard Insurance Ghana Limited",
+    "Enterprise Insurance Company Limited",
+    "Coronation Insurance Ghana Limited",
+    "Glico General Insurance Company Limited",
+    "Phoenix Insurance Company Ghana Limited",
+    "Serene Insurance Company Limited",
+    "Sanlamallianz General Insurance Ghana",
+    "Quality Insurance Company",
+    "Imperial General Assurance Company Limited",
+    "Provident Insurance Limited Company",
+    "Nsia Insurance Company Limited",
+    "Sunu Assurances Ghana Limited",
+    "Star Assurance Limited",
+    "Prime Insurance Company Limited",
+    "Priority Insurance Company Limited",
+    "Cole Insurance Company Limited",
+]
 # ── 2. Utility: currency formatter ─────────────────────────────────────────
 
 
@@ -88,111 +214,11 @@ with st.sidebar:
     st.header("Enter policy details")
 
     business = st.selectbox(
-        "Policy Type",
-        [
-            "",
-            "CONTRACTOR'S ALL RISKS",
-            "Assets All Risks",
-            "Commercial Fire",
-            "Goods In Transit",
-            "Motor Comprehensive",
-            "Performance Bond",
-            "Erection All Risks",
-            "Machinery Breakdown",
-            "Money Insurance",
-            "Motor Comprehensive Fleet",
-            "Public Liability",
-            "Group Personal Accident",
-            "Directors & Officers Liability",
-            "Removal Bond",
-            "General Exportation Bond",
-            "Industrial Fire",
-            "General Premises Bond",
-            "Workmen's Compensation",
-            "Advance Payment Guarantee",
-            "Security Bond(Customs & Excise Bond)",
-            "Temporary Importation Bond",
-            "Professional Indemnity",
-            "Bankers Blanket Indemnity",
-            "Fire & Allied Perils",
-            "Motor Third Party Fire & Theft",
-            "Contractors Plant & Machinery",
-            "Motor Third Party Liability",
-            "Fidelity Guarantee",
-            "Public/Product Liability",
-            "Business Interruption",
-            "Cash In Transit",
-            "Boiler & Pressure Plant",
-            "Bankers Blanket Bond",
-            "Plant & Machinery",
-            "Bid Bond",
-            "Customs Warehouse Bond",
-            "Electronic Equipment Insurance",
-            "Fire Assets All Risks and Business Interruption",
-            "Fire Loss Profit",
-            "Property All Risks, Machinery Breakdown & Business Interruption",
-            "Motor Comprehensive (Automobile Fac Facility)",
-            "Contractual Liability",
-            "Advance Payment Bond",
-            "Fire",
-            "Petroleum Bond",
-            "Motor Comprehensive Fleet (Automobile Fac Facility)",
-            "Environmental, Social, Health and Safety (ESHS) Performance Bond",
-            "Deterioration of Stock",
-            "Cole Class Of Business",
-            "Temporary Exportation/Importation Bond",
-            "Transit Bond",
-
-        ], key="business"
+        "Policy Type", POLICY_OPTIONS, key="policy"
     )
 
     risk_occupation = st.selectbox(
-        "Risk Occupation",
-        [
-            "",
-            "Agribusiness",
-            "Aluminium Processing",
-            "Bank",
-            "BDC Petroleum Company",
-            "Cable Manufacturing",
-            "Car Dealership",
-            "Ceramics Manufacturing",
-            "Construction",
-            "Corrugated Cardboard Production",
-            "Canned Seafoods Manufacturing",
-            "Education",
-            "Energy Generation",
-            "Ethanol Distillery",
-            "Food Manufacturing",
-            "Flour Production",
-            "Furniture Store",
-            "Gold Refinery",
-            "Gold Trading / Refinery",
-            "Heavy-Duty Vehicle Dealership",
-            "Hotelier",
-            "ICT Solutions",
-            "ID Manufacturing / Processing",
-            "Import / Export of Electrical Products",
-            "IT Solutions",
-            "Logistics",
-            "Mining",
-            "Packaging Solutions",
-            "Petroleum Retailing",
-            "Petroleum Trading",
-            "Pipes Manufacturing",
-            "Pre-fab Building Manufacturer",
-            "Real Estate",
-            "Residential Unit",
-            "Restaurant",
-            "Restaurant Chain",
-            "Security Services",
-            "Solar Panel Distribution",
-            "Steel Manufacturing",
-            "Supermarket",
-            "Timber Processing",
-            "Warehouse / Warehousing",
-            "Wholesale Food Distributors",
-        ], key="risk_occupation"
+        "Risk Occupation", OCC_OPTIONS, key="risk_occupation"
     )
 
     currency = st.selectbox(
@@ -219,37 +245,7 @@ with st.sidebar:
     )
 
     insurer = st.selectbox(
-        "Insurer",
-        [
-            "",
-            "Vanguard Assurance Company Limited",
-            "Bedrock Insurance Company Limited",
-            "Best Assurance Company Limited",
-            "Loyalty Insurance Company Limited",
-            "SIC Insurance PLC",
-            "Millennium Insurance Company Limited",
-            "RegencyNem Insurance Company",
-            "Ghana Union Assurance Limited",
-            "Unique Insurance Company Limited",
-            "Donewell Insurance Limited",
-            "Hollard Insurance Ghana Limited",
-            "Enterprise Insurance Company Limited",
-            "Coronation Insurance Ghana Limited",
-            "Glico General Insurance Company Limited",
-            "Phoenix Insurance Company Ghana Limited",
-            "Serene Insurance Company Limited",
-            "Sanlamallianz General Insurance Ghana",
-            "Quality Insurance Company",
-            "Imperial General Assurance Company Limited",
-            "Provident Insurance Limited Company",
-            "Nsia Insurance Company Limited",
-            "Sunu Assurances Ghana Limited",
-            "Star Assurance Limited",
-            "Prime Insurance Company Limited",
-            "Priority Insurance Company Limited",
-            "Cole Insurance Company Limited",
-
-        ], key="insurer"
+        "Insurer", INSURER_OPTIONS, key="insurer"
     )
 
     # Calculate quoted fac rate and brokerage
@@ -264,24 +260,24 @@ with st.sidebar:
     st.markdown("---")
     st.write("**Total Deductions**")
     st.info(f"{(brokerage + commission + other_deductions):.2f}%")
-    
+
     colR1, colR2 = st.columns(2)
     advise_btn = colR1.button("Advise")
     reset_btn = colR2.button("Reset")
-    
-    DEFAULTS = {
-    # select-boxes
-    "business": business[0],             # "CONTRACTOR'S ALL RISKS"
-    "risk_occupation": risk_occupation[0],           # "Agribusiness"
-    "currency": "GHS",
-    "insurer": insurer[0],               # "Vanguard Assurance …"
 
-    # number-inputs  (floats)
-    "sum_insured":      0.0,
-    "premium":          0.0,
-    "brokerage":        3.0,     # default you set in number_input
-    "commission":      26.0,
-    "other_deductions": 0.0,
+    DEFAULTS = {
+        # select-boxes
+        "policy": POLICY_OPTIONS[0],             # "CONTRACTOR'S ALL RISKS"
+        "risk_occupation": OCC_OPTIONS[0],           # "Agribusiness"
+        "currency": "GHS",
+        "insurer": INSURER_OPTIONS[0],               # "Vanguard Assurance …"
+
+        # number-inputs  (floats)
+        "sum_insured":      0.0,
+        "premium":          0.0,
+        "brokerage":        3.0,     # default you set in number_input
+        "commission":      26.0,
+        "other_deductions": 0.0,
     }
 
 # ── 4. Main panel – prediction & advisories ────────────────────────────────
@@ -355,7 +351,8 @@ if advise_btn:
     range_low = pred_prem - PREM_CONFIDENCE_INTERVAL * MAE
     if range_low < 0:
         # Use percentage-based formula if lower bound is negative
-        range_low = max(1, pred_prem * (1 - PREM_CONFIDENCE_INTERVAL * MAE_PCT))
+        range_low = max(
+            1, pred_prem * (1 - PREM_CONFIDENCE_INTERVAL * MAE_PCT))
     else:
         # Use absolute value formula if lower bound is non-negative
         range_low = max(0, range_low)
@@ -395,7 +392,8 @@ if advise_btn:
         pred_broker_fee if pred_broker_fee else 0
 
     # brokerage fairness – using ±1.28·MAE band
-    br_range_low = max(0, pred_broker_fee - BRK_CONFIDENCE_INTERVAL * BROKER_MAE)
+    br_range_low = max(0, pred_broker_fee -
+                       BRK_CONFIDENCE_INTERVAL * BROKER_MAE)
     br_range_high = pred_broker_fee + BRK_CONFIDENCE_INTERVAL * BROKER_MAE
 
     if quoted_brokerage_fee < br_range_low:
@@ -454,16 +452,16 @@ if advise_btn:
     # ── RQS – Reinsurance Placement Score ----------------------------------
     price_gap_pct = gap_pct
     broker_diff_pct = broker_gap_pct
-    
+
     RPS_VAL = rps(
         price_gap_pct,
         broker_diff_pct,
         total_deduct_pct,
         band_key,
-        business) 
-    
+        business)
+
     rps_letter, rps_colour, rps_comment = rps_band(RPS_VAL)
-    
+
     # Display RPS
     if is_premium_sound:
         br_col3.metric("Reinsurance Placement Score", f"{RPS_VAL}/100")
@@ -582,6 +580,6 @@ if advise_btn:
 elif reset_btn:
     # Wipe all inputs
     for key, default_val in DEFAULTS.items():
-        st.session_state[key] = default_val   
+        st.session_state[key] = default_val
 else:
     st.write("⬅ Configure the policy on the left, then click **Advise** to see the benchmark premium and guidance.")
