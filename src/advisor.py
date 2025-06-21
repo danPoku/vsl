@@ -582,7 +582,6 @@ if advise_btn:
 elif reset_btn:
     # Wipe all inputs
     for key, default_val in DEFAULTS.items():
-        st.session_state[key] = default_val
-    st.experimental_rerun()   
+        st.session_state[key] = default_val   
 else:
     st.write("⬅ Configure the policy on the left, then click **Advise** to see the benchmark premium and guidance.")
