@@ -62,13 +62,14 @@ bands_dict = load_error_bands(
     Path(__file__).parent.parent / "data" / "lob_error_bands.csv")
 # Load model metadata
 meta = load_model_meta(Path(__file__).parent.parent / "models" / "meta" / 
-                       "model_meta.json")
+                       "model_meta_v2.json")
 broker_meta = load_model_meta(Path(__file__).parent.parent / "models" / "meta" / 
                        "broker_model_meta.json")
 
 # Extract metadata
 CONFIDENCE_INTERVAL = 1.96
 MAE = meta["mae"]          # overall MAE saved during training
+MAE_PCT = meta["mae_pct"]    # overall MAE saved during training, as percentage
 BROKER_MAE = broker_meta["mae"]   # overall MAE saved during training
 
 # ── 2. Utility: currency formatter ─────────────────────────────────────────
@@ -341,8 +342,16 @@ if predict_btn:
     row1_col2.metric("Average Acceptable Market Rate",   f"{pred_rate:.2%}")
 
     # predicted premium range guidance - ±1.96·MAE (95 % error band)
-    range_low = max(0, pred_prem - CONFIDENCE_INTERVAL * MAE)
-    range_high = pred_prem + CONFIDENCE_INTERVAL * MAE
+    range_low = pred_prem - CONFIDENCE_INTERVAL * MAE
+    if range_low < 0:
+        # Use percentage-based formula if lower bound is negative
+        range_low = max(1, pred_prem * (1 - CONFIDENCE_INTERVAL * MAE_PCT))
+    else:
+        # Use absolute value formula if lower bound is non-negative
+        range_low = max(0, range_low)
+    range_high = pred_prem + CONFIDENCE_INTERVAL * MAE    
+    # range_low = max(1, pred_prem *(1 - CONFIDENCE_INTERVAL * MAE_PCT))
+    # range_high = pred_prem * (1 + CONFIDENCE_INTERVAL * MAE_PCT)
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
     row1_col3.metric("Visal Model Rating Guide", range_txt)
