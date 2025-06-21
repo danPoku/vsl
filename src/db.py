@@ -4,6 +4,7 @@ from datetime import datetime
 import gspread
 import json
 from google.oauth2.service_account import Credentials
+import streamlit as st
 
 DB_PATH = "database/submissions.db"
 
@@ -78,11 +79,11 @@ def log_submission(data: dict):
     conn.close()
     
 
-SERVICE_ACCOUNT_INFO = os.environ.get("GOOGLE_SERVICE_ACCOUNT_INFO")
-# SERVICE_ACCOUNT_INFO = GOOGLE_SERVICE_ACCOUNT_JSON
+# Google Service Account 
+SERVICE_ACCOUNT_INFO = dict(st.secrets["GOOGLE_SERVICE_ACCOUNT_INFO"])
 
 # Google Sheet
-SHEET_NAME = json.loads(os.environ.get("GOOGLE_SHEET_NAME"))
+SHEET_NAME = os.environ.get("GOOGLE_SHEET_NAME")
 
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
