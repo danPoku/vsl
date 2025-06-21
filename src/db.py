@@ -83,7 +83,7 @@ def log_submission(data: dict):
 SERVICE_ACCOUNT_INFO = dict(st.secrets["GOOGLE_SERVICE_ACCOUNT_INFO"])
 
 # Google Sheet
-SHEET_NAME = os.environ.get("GOOGLE_SHEET_NAME")
+SHEET_NAME = st.secrets["GOOGLE_SHEET_NAME"]
 
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
