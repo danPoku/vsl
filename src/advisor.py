@@ -210,7 +210,7 @@ with st.sidebar:
     )
 
     brokerage = st.number_input("Brokerage Rate %",  min_value=0.0, max_value=100.0,
-                                key="brokerage", value=5.0, step=1.0)
+                                key="brokerage", value=3.0, step=1.0)
     commission = st.number_input("Commission %", min_value=0.0, max_value=100.0,
                                  key="commission", value=26.0, step=0.1)
     other_deductions = st.number_input(
@@ -271,15 +271,15 @@ with st.sidebar:
     
     DEFAULTS = {
     # select-boxes
-    "business": BUSINESS_OPTIONS[0],             # "CONTRACTOR'S ALL RISKS"
-    "risk_occupation": OCC_OPTIONS[0],           # "Agribusiness"
+    "business": "",             # "CONTRACTOR'S ALL RISKS"
+    "risk_occupation": "",           # "Agribusiness"
     "currency": "GHS",
-    "insurer": INSURER_OPTIONS[0],               # "Vanguard Assurance …"
+    "insurer": "",               # "Vanguard Assurance …"
 
     # number-inputs  (floats)
     "sum_insured":      0.0,
     "premium":          0.0,
-    "brokerage":        5.0,     # default you set in number_input
+    "brokerage":        3.0,     # default you set in number_input
     "commission":      26.0,
     "other_deductions": 0.0,
     }
