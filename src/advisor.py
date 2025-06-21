@@ -2,11 +2,11 @@ import streamlit as st
 import pandas as pd
 import pickle
 from pathlib import Path
-from db import init_db, log_submission, log_submission_gsheets
+from db import log_submission_gsheets
 
 st.set_page_config(page_title="VisalRE Premium Check", page_icon="📊")
 # ── 0. Initialize database ────────────────────────────────────────────────
-init_db()
+# init_db()
 
 # ── 1. Load pickled model (cached) ──────────────────────────────────────────
 
@@ -589,7 +589,7 @@ if predict_btn:
         "br_range_low": br_range_low,
         "br_range_high": br_range_high,
     }
-    log_submission(log_data)
+    # log_submission(log_data)
     log_submission_gsheets(log_data)
 else:
     st.write("⬅ Configure the policy on the left, then click **Advise** to see the benchmark premium and guidance.")
