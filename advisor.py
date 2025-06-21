@@ -1,12 +1,13 @@
-# fac_check_app.py
-# ────────────────────────────────────────────────────────────────────────────
 import streamlit as st
 import pandas as pd
 import pickle
 from pathlib import Path
 import math
+from db import init_db, log_submission
 
 st.set_page_config(page_title="VisalRE Premium Check", page_icon="📊")
+# ── 0. Initialize database ────────────────────────────────────────────────
+init_db()
 
 # ── 1. Load pickled model (cached) ──────────────────────────────────────────
 
@@ -64,6 +65,7 @@ broker_meta = load_model_meta(
     Path(__file__).with_name("broker_model_meta.json")
 )
 MAE = meta["mae"]          # overall MAE saved during training
+CONFIDENCE_INTERVAL = 1.96
 BROKER_MAE = broker_meta["mae"]   # overall MAE saved during training
 
 # ── 2. Utility: currency formatter ─────────────────────────────────────────
@@ -337,8 +339,8 @@ if predict_btn:
     row1_col2.metric("Average Acceptable Market Rate",   f"{pred_rate:.2%}")
 
     # predicted premium range guidance - ±1.96·MAE (95 % error band)
-    range_low = max(0, pred_prem - 1.96 * MAE)
-    range_high = pred_prem + 1.96 * MAE
+    range_low = max(0, pred_prem - CONFIDENCE_INTERVAL * MAE)
+    range_high = pred_prem + CONFIDENCE_INTERVAL * MAE
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
     row1_col3.metric("Visal Model Rating Guide", range_txt)
@@ -349,12 +351,12 @@ if predict_btn:
     row1_col4.metric("Insurer Premium Payment Profile", default_txt)
 
     # brokerage fairness – using ±1.96·MAE band
-    br_low  = max(0, pred_broker_fee - 1.96 * BROKER_MAE)
-    br_high = pred_broker_fee + 1.96 * BROKER_MAE
+    br_range_low  = max(0, pred_broker_fee - CONFIDENCE_INTERVAL * BROKER_MAE)
+    br_range_high = pred_broker_fee + CONFIDENCE_INTERVAL * BROKER_MAE
 
-    if quoted_brokerage_fee < br_low:
+    if quoted_brokerage_fee < br_range_low:
         br_colour, br_flag = "orange", "⚠ Low brokerage"
-    elif quoted_brokerage_fee > br_high:
+    elif quoted_brokerage_fee > br_range_high:
         br_colour, br_flag = "red",    "❌ High brokerage"
     else:
         br_colour, br_flag = "green",  "✅ Fair brokerage"
@@ -373,9 +375,9 @@ if predict_btn:
     # premium_band already computed earlier  →  price_band  (under | ok | over)
 
     # brokerage band  (low | fair | high)
-    if quoted_brokerage_fee < br_low:
+    if quoted_brokerage_fee < br_range_low:
         br_band = "low"
-    elif quoted_brokerage_fee > br_high:
+    elif quoted_brokerage_fee > br_range_high:
         br_band = "high"
     else:
         br_band = "fair"
@@ -531,5 +533,29 @@ if predict_btn:
     cA.info(f"💼 **Cedant / Insurer**\n\n{cedant_msg}")
     cB.warning(f"🤝 **Broker**\n\n{broker_msg}")
     cC.error(f"🏢 **Reinsurer**\n\n{reins_msg}")
+    
+    # ── Log submission to database ───────────────────────────────────────
+    log_data = {
+        "fac_sum_insured": sum_ins,
+        "business_name": business,
+        "currency": currency,
+        "brokerage": brokerage,
+        "commission": commission,
+        "reinsured": insurer,
+        "premium_input": premium_input,
+        "pred_prem": pred_prem,
+        "pred_rate": pred_rate,
+        "prem_mae": MAE,
+        "confidence_interval": CONFIDENCE_INTERVAL,
+        "prem_range_low": range_low,
+        "prem_range_high": range_high,
+        "quoted_brokerage_fee": quoted_brokerage_fee,
+        "pred_broker_fee": pred_broker_fee,
+        "pred_broker_rate": pred_broker_rate,
+        "broker_mae": BROKER_MAE,
+        "br_range_low": br_range_low,
+        "br_range_high": br_range_high,
+    }
+    log_submission(log_data)
 else:
     st.write("⬅ Configure the policy on the left, then click **Advise** to see the benchmark premium and guidance.")
