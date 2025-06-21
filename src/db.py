@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 
-DB_PATH = "submissions.db"
+DB_PATH = "database/submissions.db"
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -12,6 +12,7 @@ def init_db():
             timestamp TEXT,
             fac_sum_insured REAL,
             business_name TEXT,
+            risk_occupation TEXT,
             currency TEXT,
             brokerage REAL,
             commission REAL,
@@ -39,15 +40,16 @@ def log_submission(data: dict):
     c = conn.cursor()
     c.execute("""
         INSERT INTO submissions (
-            timestamp, fac_sum_insured, business_name, currency, brokerage, commission,
+            timestamp, fac_sum_insured, business_name, risk_occupation, currency, brokerage, commission,
             reinsured, premium_input, pred_prem, pred_rate, prem_mae, confidence_interval, 
             prem_range_low, prem_range_high, quoted_brokerage_fee, pred_broker_fee, 
             pred_broker_rate, broker_mae, br_range_low, br_range_high
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         datetime.now().isoformat(),
         data.get("fac_sum_insured"),
         data.get("business_name"),
+        data.get("risk_occupation"),
         data.get("currency"),
         data.get("brokerage"),
         data.get("commission"),

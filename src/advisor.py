@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import pickle
 from pathlib import Path
-import math
 from db import init_db, log_submission
 
 st.set_page_config(page_title="VisalRE Premium Check", page_icon="📊")
@@ -18,10 +17,10 @@ def load_model(path: Path):
         return pickle.load(f)
 
 
-model = load_model(Path(__file__).with_name("visal_re_predictor.pkl"))
-broker_model = load_model(
-    Path(__file__).with_name("brokerage_predictor.pkl")
-)
+model = load_model(Path(__file__).parent.parent / "models" /
+                   "predictors" / "visal_re_predictor.pkl")
+broker_model = load_model(Path(__file__).parent.parent / "models" /
+                        "predictors" / "brokerage_predictor.pkl")
 
 # ── Load reinsurer default-band lookup ────────────────────────────────
 
@@ -36,8 +35,8 @@ def load_band_lookup(csv_path: Path):
     return dict(zip(df_band["reinsured"], df_band["band"]))
 
 
-band_lookup = load_band_lookup(
-    Path(__file__).with_name("prem_adequacy_with_bands.csv"))
+band_lookup = load_band_lookup(Path(__file__).parent.parent / "data" /
+                               "prem_adequacy_with_bands.csv")
 
 band_desc = {
     "low":        "Low defaulter",
@@ -59,13 +58,17 @@ def load_model_meta(json_path: Path) -> dict:
     return json.loads(Path(json_path).read_text())
 
 
-bands_dict = load_error_bands(Path(__file__).with_name("lob_error_bands.csv"))
-meta = load_model_meta(Path(__file__).with_name("model_meta.json"))
-broker_meta = load_model_meta(
-    Path(__file__).with_name("broker_model_meta.json")
-)
-MAE = meta["mae"]          # overall MAE saved during training
+bands_dict = load_error_bands(
+    Path(__file__).parent.parent / "data" / "lob_error_bands.csv")
+# Load model metadata
+meta = load_model_meta(Path(__file__).parent.parent / "models" / "meta" / 
+                       "model_meta.json")
+broker_meta = load_model_meta(Path(__file__).parent.parent / "models" / "meta" / 
+                       "broker_model_meta.json")
+
+# Extract metadata
 CONFIDENCE_INTERVAL = 1.96
+MAE = meta["mae"]          # overall MAE saved during training
 BROKER_MAE = broker_meta["mae"]   # overall MAE saved during training
 
 # ── 2. Utility: currency formatter ─────────────────────────────────────────
@@ -292,8 +295,7 @@ if predict_btn:
                         100) if premium_input else 0
     broker_gap_pct = 100 * (quoted_brokerage_fee - pred_broker_fee) / \
         pred_broker_fee if pred_broker_fee else 0
-        
-        
+
     # ── Results metrics ────────────────────────────────────────────────────
     row1_col1, row1_col2, row1_col3, row1_col4 = st.columns(4)
 
@@ -351,7 +353,7 @@ if predict_btn:
     row1_col4.metric("Insurer Premium Payment Profile", default_txt)
 
     # brokerage fairness – using ±1.96·MAE band
-    br_range_low  = max(0, pred_broker_fee - CONFIDENCE_INTERVAL * BROKER_MAE)
+    br_range_low = max(0, pred_broker_fee - CONFIDENCE_INTERVAL * BROKER_MAE)
     br_range_high = pred_broker_fee + CONFIDENCE_INTERVAL * BROKER_MAE
 
     if quoted_brokerage_fee < br_range_low:
@@ -360,7 +362,6 @@ if predict_btn:
         br_colour, br_flag = "red",    "❌ High brokerage"
     else:
         br_colour, br_flag = "green",  "✅ Fair brokerage"
-        
 
     # ──────────────────────────────────────────────────────────────────────────
     #  A D V I S O R Y   E N G I N E   (premium · brokerage · deductions · default)
@@ -393,8 +394,8 @@ if predict_btn:
 
     # insurer payment default band  → band_key  ("low"|"moderate"|"high") loaded earlier
         # ── RQS – Reinsurance Quotability Score ----------------------------------
-    price_score   = {"under": 0.5, "ok": 1.0, "over": 0.8}[price_band]
-    broker_score  = {"low": 0.8, "fair": 1.0, "high": 0.6}[br_band]
+    price_score = {"under": 0.5, "ok": 1.0, "over": 0.8}[price_band]
+    broker_score = {"low": 0.8, "fair": 1.0, "high": 0.6}[br_band]
 
     if ded_band == "acceptable":
         ded_score = 1.0
@@ -423,21 +424,21 @@ if predict_btn:
 
     # ── Map RQS → band, colour, one-liner -----------------------------------
     if RQS >= 90:
-        rqs_band   = "A – Excellent"
+        rqs_band = "A – Excellent"
         rqs_colour = "green"
-        rqs_comment= "Top-tier submission; place confidently."
+        rqs_comment = "Top-tier submission; place confidently."
     elif RQS >= 75:                   # 75-89
-        rqs_band   = "B – Strong / Preferred"
+        rqs_band = "B – Strong / Preferred"
         rqs_colour = "#CEFA05"  # limegreen
-        rqs_comment= "Attractive risk; place with minor tweaks."
+        rqs_comment = "Attractive risk; place with minor tweaks."
     elif RQS >= 60:                   # 60-74
-        rqs_band   = "C – Borderline / Conditional"
+        rqs_band = "C – Borderline / Conditional"
         rqs_colour = "orange"
-        rqs_comment= "Placement feasible, but needs concessions or extra info."
+        rqs_comment = "Placement feasible, but needs concessions or extra info."
     else:                             # 0-59
-        rqs_band   = "D – Weak / Decline"
+        rqs_band = "D – Weak / Decline"
         rqs_colour = "red"
-        rqs_comment= "Outside appetite; likely decline."
+        rqs_comment = "Outside appetite; likely decline."
 
     # ── Row 2 – brokerage KPIs ─────────────────────────────────────────────
     br_col1, br_col2, br_col3 = st.columns(3)
@@ -507,20 +508,20 @@ if predict_btn:
     }
 
     # 4️⃣  ----- BUILD FINAL ADVICE TEXTS --------------------------------------
-    cedant_msg  = " ".join([
+    cedant_msg = " ".join([
         cedant_tmpl[(price_band,)],
         brokerage_tmpl[(br_band,)],
         ded_tmpl[ded_band],
         f"{difficulty_msg[difficulty]}"
     ])
 
-    broker_msg  = (
+    broker_msg = (
         f"{difficulty_msg[difficulty]}  "
         f"Reasons: price: **{price_band}**, brokerage: **{br_band}**, "
         f"deductions: **{ded_band}**, insurer premium payment default profile **{band_key}**."
     )
 
-    reins_msg   = " ".join([
+    reins_msg = " ".join([
         default_tmpl[band_key],
         # cedant_tmpl[(price_band,)],
         ded_tmpl[ded_band],
@@ -533,11 +534,12 @@ if predict_btn:
     cA.info(f"💼 **Cedant / Insurer**\n\n{cedant_msg}")
     cB.warning(f"🤝 **Broker**\n\n{broker_msg}")
     cC.error(f"🏢 **Reinsurer**\n\n{reins_msg}")
-    
+
     # ── Log submission to database ───────────────────────────────────────
     log_data = {
         "fac_sum_insured": sum_ins,
         "business_name": business,
+        "risk_occupation": risk_occupation,
         "currency": currency,
         "brokerage": brokerage,
         "commission": commission,
