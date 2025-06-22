@@ -284,10 +284,10 @@ if advise_btn:
     st.markdown(
         """
         <style>
-        /* let metric titles wrap */
+        /* metric titles wrap */
         div[data-testid="stMetricLabel"] {
-            white-space: normal;          /* no forced single line            */
-            overflow-wrap: anywhere;      /* break long words if needed       */
+            white-space: normal;      
+            overflow-wrap: anywhere; 
         }
 
         /* slightly smaller value font + allow wrap for very wide figures   */
