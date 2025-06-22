@@ -292,7 +292,7 @@ if advise_btn:
 
         /* slightly smaller value font + allow wrap for very wide figures   */
         div[data-testid="stMetricValue"] {
-            font-size: 1.00rem;           /* default is ~1.5rem               */
+            font-size: 12px;    
             white-space: normal;
             overflow-wrap: break-word;
         }
