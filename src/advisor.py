@@ -292,9 +292,9 @@ if advise_btn:
 
         /* slightly smaller value font + allow wrap for very wide figures   */
         div[data-testid="stMetricValue"] {
-            font-size: 1.25rem;           /* default is ~1.5rem               */
+            font-size: 1.00rem;           /* default is ~1.5rem               */
             white-space: normal;
-            overflow-wrap: anywhere;
+            overflow-wrap: break-word;
         }
         </style>
         """,
@@ -309,12 +309,12 @@ if advise_btn:
         unsafe_allow_html=True
     )
 
-    row1_col2.metric("Average Acceptable Market Rate", f"{pred_rate:.2%}")
+    row1_col2.metric("**Average Acceptable Market Rate**", f"{pred_rate:.2%}")
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
-    row1_col3.metric("Visal Model Rating Guide", range_txt)
+    row1_col3.metric("**Visal Model Rating Guide**", range_txt)
 
-    row1_col4.metric("Insurer Premium Payment Profile", default_txt)
+    row1_col4.metric("**Insurer Premium Payment Profile**", default_txt)
 
     # Row 2 – brokerage metrics   (only if the premium itself is sensible)
     br_col1, br_col2, br_col3 = st.columns(3, gap="small")
@@ -325,8 +325,8 @@ if advise_btn:
             f"<span style='color:{br_colour}; font-weight:bold'>{br_flag}</span>",
             unsafe_allow_html=True
         )
-        br_col2.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
-        br_col3.metric("Reinsurance Placement Score", f"{RPS_VAL}/100")
+        br_col2.metric("**Predicted Brokerage Rate**", f"{pred_broker_rate:.2f}%")
+        br_col3.metric("**Reinsurance Placement Score**", f"{RPS_VAL}/100")
         br_col3.markdown(
             f"<span style='color:{rps_colour}; font-weight:bold'>"
             f"{rps_letter} – {rps_comment}</span>",
