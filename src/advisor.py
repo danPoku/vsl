@@ -90,6 +90,19 @@ if "results" not in st.session_state:
 if "inputs" not in st.session_state:
     st.session_state.inputs = DEFAULTS.copy()
 
+# ── Validation helper ────────────────────────────────────────────────────
+def all_required_inputs_present() -> bool:
+    """Return True only when every critical input has a sensible value."""
+    return (
+        st.session_state.policy.strip()                   # policy type chosen
+        and st.session_state.currency.strip()             # currency chosen
+        and st.session_state.sum_insured > 0              # positive sum insured
+        and st.session_state.premium > 0                  # positive premium
+        and st.session_state.brokerage >= 0               # brokerage entered
+        and st.session_state.commission >= 0              # commission entered
+        and st.session_state.insurer.strip()              # insurer chosen
+    )
+
 def fmt_currency(x: float, cur: str):
     return f"{'GHS' if cur == 'GHS' else '$'} {x:,.2f}"
 
@@ -97,7 +110,6 @@ def reset_form():
     """Callback for the *Reset* button."""
     st.session_state.update(DEFAULTS)
     st.session_state.results = None
-    st.experimental_rerun()
 
 # ── -----------------------------------------------------------------------
 # 4.  SIDEBAR – DATA ENTRY                                                  
@@ -140,6 +152,11 @@ st.title("Reinsurance Placement Index")
 # Compute & store results (on demand)                                       
 # --------------------------------------------------------------------------
 if advise_btn:
+    if not all_required_inputs_present():
+        st.error("Please fill in: Policy Type, Currency, Sum Insured, "
+                 "Premium, Brokerage %, Commission %, and Insurer before "
+                 "requesting advice.")
+        st.stop() 
 
     # ---- Build feature frames -------------------------------------------
     row = pd.DataFrame([{
