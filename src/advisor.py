@@ -142,7 +142,12 @@ with st.sidebar:
     # Action buttons
     advise_btn = st.button("Advise", type="primary")
     st.button("Reset",  type="secondary", on_click=reset_form)
-
+    
+    # ── footer ──────────────────────────────────────────────────────────
+    st.markdown("---")
+    st.caption("Powered by **Vaarde AI**")
+    
+    
 # ── -----------------------------------------------------------------------
 # 5.  MAIN PANEL                                                            
 # ── -----------------------------------------------------------------------
