@@ -261,6 +261,45 @@ if advise_btn:
     )
 
     reins_msg = " ".join([default_msg, ded_msg, brokerage_msg])
+    
+    # ── DISPLAY  •  METRIC GRID ────────────────────────────────────────────────
+    # Row 1 – premium-centric metrics
+    row1_col1, row1_col2, row1_col3, row1_col4 = st.columns(4, gap="small")
+
+    row1_col1.markdown("**Premium Comment**")
+    row1_col1.markdown(
+        f"<span style='color:{colour}; font-weight:bold'>{flag}</span>",
+        unsafe_allow_html=True
+    )
+
+    row1_col2.metric("Average Acceptable Market Rate", f"{pred_rate:.2%}")
+
+    range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
+    row1_col3.metric("Visal Model Rating Guide", range_txt)
+
+    row1_col4.metric("Insurer Premium Payment Profile", default_txt)
+
+    # Row 2 – brokerage metrics   (only if the premium itself is sensible)
+    br_col1, br_col2, br_col3 = st.columns(3, gap="small")
+
+    if is_premium_sound:
+        br_col1.markdown("**Brokerage Comment**")
+        br_col1.markdown(
+            f"<span style='color:{br_colour}; font-weight:bold'>{br_flag}</span>",
+            unsafe_allow_html=True
+        )
+        br_col2.metric("Predicted Brokerage Rate", f"{pred_broker_rate:.2f}%")
+        br_col3.metric("Reinsurance Placement Score", f"{RPS_VAL}/100")
+        br_col3.markdown(
+            f"<span style='color:{rps_colour}; font-weight:bold'>"
+            f"{rps_letter} – {rps_comment}</span>",
+            unsafe_allow_html=True
+        )
+    else:
+        st.warning(
+            "Brokerage guidance and placement score are hidden "
+            "because the quoted premium is outside the model’s credible range."
+        )
 
     # ---- Display metrics ------------------------------------------------
     st.subheader("Implications")
