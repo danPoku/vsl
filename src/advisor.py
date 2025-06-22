@@ -133,11 +133,11 @@ with st.sidebar:
     quoted_fac_rate       = (premium_input / sum_ins * 100) if sum_ins else 0.0
     quoted_brokerage_fee  = (brokerage / 100) * premium_input
     st.markdown("---")
-    st.info(f"**Placement Rate (%)**\n{quoted_fac_rate:.2f}")
+    st.info(f"**Placement Rate (%)**  \n{quoted_fac_rate:.2f}")
     st.markdown("---")
-    st.info(f"**Placement Brokerage Fee**\n{fmt_currency(quoted_brokerage_fee, currency)}")
+    st.info(f"**Placement Brokerage Fee**  \n{fmt_currency(quoted_brokerage_fee, currency)}")
     st.markdown("---")
-    st.info(f"**Total Deductions**\n{(brokerage + commission + other_deductions):.2f}%")
+    st.info(f"**Total Deductions**  \n{(brokerage + commission + other_deductions):.2f}%")
 
     # Action buttons
     advise_btn = st.button("Advise", type="primary")
