@@ -280,6 +280,26 @@ if advise_btn:
     reins_msg = " ".join([default_msg, ded_msg, brokerage_msg])
     
     # ── DISPLAY  •  METRIC GRID ────────────────────────────────────────────────
+    # Styling for metric grid
+    st.markdown(
+        """
+        <style>
+        /* let metric titles wrap */
+        div[data-testid="stMetricLabel"] {
+            white-space: normal;          /* no forced single line            */
+            overflow-wrap: anywhere;      /* break long words if needed       */
+        }
+
+        /* slightly smaller value font + allow wrap for very wide figures   */
+        div[data-testid="stMetricValue"] {
+            font-size: 1.25rem;           /* default is ~1.5rem               */
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
     # Row 1 – premium-centric metrics
     row1_col1, row1_col2, row1_col3, row1_col4 = st.columns(4, gap="small")
 
