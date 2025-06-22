@@ -287,7 +287,7 @@ if advise_btn:
         /* metric titles wrap */
         div[data-testid="stMetricLabel"] {
             white-space: normal;      
-            overflow-wrap: anywhere; 
+            overflow-wrap: break-word; 
         }
 
         /* slightly smaller value font + allow wrap for very wide figures   */
