@@ -285,7 +285,7 @@ if advise_btn:
         """
         <style>
         /* metric titles wrap */
-        div[data-testid="stMetricLabel"] {
+        div[data-testid="stMarkdownContainer"] {
             white-space: normal;      
             overflow-wrap: break-word; 
         }
