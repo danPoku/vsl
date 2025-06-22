@@ -123,8 +123,8 @@ with st.sidebar:
     currency         = st.selectbox("Currency", ["GHS", "USD", "EUR"],  key="currency")
     sum_ins          = st.number_input("Sum Insured",   min_value=0.0,  step=1_000.0, key="sum_insured")
     premium_input    = st.number_input("Premium",       min_value=0.0,  step=100.0,   key="premium")
-    brokerage        = st.number_input("Brokerage Rate %", 0.0, 100.0,  key="brokerage",  value=3.0)
-    commission       = st.number_input("Commission %",     0.0, 100.0,  key="commission", value=26.0)
+    brokerage        = st.number_input("Brokerage Rate %", 0.0, 100.0,  key="brokerage")
+    commission       = st.number_input("Commission %",     0.0, 100.0,  key="commission")
     other_deductions = st.number_input("Other Deductions %", 0.0, step=10.0,
                                        key="other_deductions", value=0.0)
     insurer          = st.selectbox("Insurer", INSURER_OPTIONS, key="insurer")
