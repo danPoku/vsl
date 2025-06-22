@@ -1,0 +1,127 @@
+policy_options:
+  - ""  # intentionally left blank option
+  - "CONTRACTOR'S ALL RISKS"
+  - Assets All Risks
+  - Commercial Fire
+  - Goods In Transit
+  - Motor Comprehensive
+  - Performance Bond
+  - Erection All Risks
+  - Machinery Breakdown
+  - Money Insurance
+  - Motor Comprehensive Fleet
+  - Public Liability
+  - Group Personal Accident
+  - "Directors & Officers Liability"
+  - Removal Bond
+  - General Exportation Bond
+  - Industrial Fire
+  - General Premises Bond
+  - "Workmen's Compensation"
+  - Advance Payment Guarantee
+  - "Security Bond(Customs & Excise Bond)"
+  - Temporary Importation Bond
+  - Professional Indemnity
+  - Bankers Blanket Indemnity
+  - Fire & Allied Perils
+  - Motor Third Party Fire & Theft
+  - Contractors Plant & Machinery
+  - Motor Third Party Liability
+  - Fidelity Guarantee
+  - Public/Product Liability
+  - Business Interruption
+  - Cash In Transit
+  - Boiler & Pressure Plant
+  - Bankers Blanket Bond
+  - Plant & Machinery
+  - Bid Bond
+  - Customs Warehouse Bond
+  - Electronic Equipment Insurance
+  - Fire Assets All Risks and Business Interruption
+  - Fire Loss Profit
+  - Property All Risks, Machinery Breakdown & Business Interruption
+  - "Motor Comprehensive (Automobile Fac Facility)"
+  - Contractual Liability
+  - Advance Payment Bond
+  - Fire
+  - Petroleum Bond
+  - "Motor Comprehensive Fleet (Automobile Fac Facility)"
+  - Environmental, Social, Health and Safety (ESHS) Performance Bond
+  - Deterioration of Stock
+  - Cole Class Of Business
+  - Temporary Exportation/Importation Bond
+  - Transit Bond
+
+occ_options:
+  - ""  # intentionally left blank option
+  - Agribusiness
+  - Aluminium Processing
+  - Bank
+  - BDC Petroleum Company
+  - Cable Manufacturing
+  - Car Dealership
+  - Ceramics Manufacturing
+  - Construction
+  - Corrugated Cardboard Production
+  - Canned Seafoods Manufacturing
+  - Education
+  - Energy Generation
+  - Ethanol Distillery
+  - Food Manufacturing
+  - Flour Production
+  - Furniture Store
+  - Gold Refinery
+  - "Gold Trading / Refinery"
+  - "Heavy-Duty Vehicle Dealership"
+  - Hotelier
+  - ICT Solutions
+  - "ID Manufacturing / Processing"
+  - "Import / Export of Electrical Products"
+  - IT Solutions
+  - Logistics
+  - Mining
+  - Packaging Solutions
+  - Petroleum Retailing
+  - Petroleum Trading
+  - Pipes Manufacturing
+  - Pre-fab Building Manufacturer
+  - Real Estate
+  - Residential Unit
+  - Restaurant
+  - Restaurant Chain
+  - Security Services
+  - Solar Panel Distribution
+  - Steel Manufacturing
+  - Supermarket
+  - Timber Processing
+  - "Warehouse / Warehousing"
+  - Wholesale Food Distributors
+
+insurer_options:
+  - ""  # intentionally left blank option
+  - Vanguard Assurance Company Limited
+  - Bedrock Insurance Company Limited
+  - Best Assurance Company Limited
+  - Loyalty Insurance Company Limited
+  - SIC Insurance PLC
+  - Millennium Insurance Company Limited
+  - RegencyNem Insurance Company
+  - Ghana Union Assurance Limited
+  - Unique Insurance Company Limited
+  - Donewell Insurance Limited
+  - Hollard Insurance Ghana Limited
+  - Enterprise Insurance Company Limited
+  - Coronation Insurance Ghana Limited
+  - Glico General Insurance Company Limited
+  - Phoenix Insurance Company Ghana Limited
+  - Serene Insurance Company Limited
+  - Sanlamallianz General Insurance Ghana
+  - Quality Insurance Company
+  - Imperial General Assurance Company Limited
+  - Provident Insurance Limited Company
+  - Nsia Insurance Company Limited
+  - Sunu Assurances Ghana Limited
+  - Star Assurance Limited
+  - Prime Insurance Company Limited
+  - Priority Insurance Company Limited
+  - Cole Insurance Company Limited

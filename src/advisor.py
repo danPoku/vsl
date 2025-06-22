@@ -4,6 +4,7 @@ VisalRE Premium Check – state-safe
 import json
 from pathlib import Path
 import pickle
+import yaml
 
 import pandas as pd
 import streamlit as st
@@ -41,6 +42,12 @@ def load_error_bands(csv_path: Path):
 def load_meta(json_path: Path):
     return json.loads(Path(json_path).read_text())
 
+@st.cache_data
+def load_options_yaml(yaml_path: Path):
+    with open(yaml_path, "r") as f:
+        options = yaml.safe_load(f)
+    return options
+
 ROOT = Path(__file__).parent.parent
 model          = load_model(ROOT / "models" / "predictors" / "visal_re_predictor.pkl")
 broker_model   = load_model(ROOT / "models" / "predictors" / "brokerage_predictor.pkl")
@@ -48,6 +55,7 @@ band_lookup    = load_band_lookup(ROOT / "data"   / "prem_adequacy_with_bands.cs
 bands_dict     = load_error_bands(ROOT / "data"   / "lob_error_bands.csv")
 meta           = load_meta(ROOT  / "models" / "meta" / "model_meta_v2.json")
 broker_meta    = load_meta(ROOT  / "models" / "meta" / "broker_model_meta.json")
+options        = load_options_yaml(ROOT / "data" / "options.yml")
 
 # ── -----------------------------------------------------------------------
 # 2.  STATIC CONSTANTS                                                      
@@ -58,9 +66,9 @@ MAE, MAE_PCT, BROKER_MAE = meta["mae"], meta["mae_pct"], broker_meta["mae"]
 
 # … (POLICY_OPTIONS, OCC_OPTIONS, INSURER_OPTIONS remain unchanged) …
 # --- snip for brevity – paste the same large lists here unchanged ----------
-POLICY_OPTIONS = [...]
-OCC_OPTIONS    = [...]
-INSURER_OPTIONS = [...]
+POLICY_OPTIONS = options["policy_options"]
+OCC_OPTIONS    = options["occ_options"]
+INSURER_OPTIONS = options["insurer_options"]
 
 DEFAULTS = {
     "policy": POLICY_OPTIONS[0],
