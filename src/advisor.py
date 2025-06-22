@@ -6,8 +6,7 @@ from db import log_submission_gsheets
 from rpc import rps, rps_band
 
 st.set_page_config(page_title="VisalRE Premium Check", page_icon="📊")
-# ── 0. Initialize database ────────────────────────────────────────────────
-# init_db()
+
 
 # ── 1. Load pickled model (cached) ──────────────────────────────────────────
 
@@ -201,6 +200,29 @@ INSURER_OPTIONS = [
     "Priority Insurance Company Limited",
     "Cole Insurance Company Limited",
 ]
+
+DEFAULTS = {
+    # select-boxes
+    "policy": POLICY_OPTIONS[0],             # "CONTRACTOR'S ALL RISKS"
+    "risk_occupation": OCC_OPTIONS[0],           # "Agribusiness"
+    "currency": "GHS",
+    "insurer": INSURER_OPTIONS[0],               # "Vanguard Assurance …"
+
+    # number-inputs  (floats)
+    "sum_insured":      0.0,
+    "premium":          0.0,
+    "brokerage":        3.0,     # default you set in number_input
+    "commission":      26.0,
+    "other_deductions": 0.0,
+}
+
+# ── 0-B.  Session defaults ────────────────────────────────────────────────
+if "results" not in st.session_state:      # holds the last set of metrics
+    st.session_state.results = None
+
+if "inputs" not in st.session_state:       # keeps the sidebar values
+    st.session_state.inputs = {k: v for k, v in DEFAULTS.items()}
+
 # ── 2. Utility: currency formatter ─────────────────────────────────────────
 
 
@@ -262,26 +284,16 @@ with st.sidebar:
     st.info(f"{(brokerage + commission + other_deductions):.2f}%")
 
     # colR1, colR2 = st.columns(2)
-    advise_btn = st.button("Advise")
-    # reset_btn = colR2.button("Reset")
+    advise_btn = st.button("Advise", type="primary")
+    reset_btn = st.button("Reset", type="secondary")
 
-    DEFAULTS = {
-        # select-boxes
-        "policy": POLICY_OPTIONS[0],             # "CONTRACTOR'S ALL RISKS"
-        "risk_occupation": OCC_OPTIONS[0],           # "Agribusiness"
-        "currency": "GHS",
-        "insurer": INSURER_OPTIONS[0],               # "Vanguard Assurance …"
-
-        # number-inputs  (floats)
-        "sum_insured":      0.0,
-        "premium":          0.0,
-        "brokerage":        3.0,     # default you set in number_input
-        "commission":      26.0,
-        "other_deductions": 0.0,
-    }
 
 # ── 4. Main panel – prediction & advisories ────────────────────────────────
-st.title("📊 Reinsurance Placement Index")
+st.title("Reinsurance Placement Index")
+if st.session_state.results is None:
+    st.write("⬅ Configure the policy on the left, then click **Advise**.")
+else:
+    res = st.session_state.results    
 
 if advise_btn:
     # build feature frame for the model
@@ -575,11 +587,35 @@ if advise_btn:
         "br_range_low": br_range_low,
         "br_range_high": br_range_high,
     }
-    # log_submission(log_data)
     log_submission_gsheets(log_data)
-# elif reset_btn:
-    # Wipe all inputs
-    # for key, default_val in DEFAULTS.items():
-        # st.session_state[key] = default_val
+    st.session_state.results = {
+        "premium": {
+            "pred_rate": pred_rate, "range": (range_low, range_high),
+            "flag": flag, "colour": colour, "band": price_band,
+        },
+        "brokerage": {
+            "pred_rate": pred_broker_rate, "flag": br_flag,
+            "colour": br_colour, "band": br_band,
+        },
+        "rps": {
+            "value": RPS_VAL, "letter": rps_letter, "colour": rps_colour,
+            "comment": rps_comment,
+        },
+        "difficulty": difficulty,
+        "messages": {"cedant": cedant_msg,
+                     "broker": broker_msg,
+                     "reins": reins_msg},
+    }
+    st.session_state.inputs = {         # remember the exact inputs used
+        k: st.session_state[k] for k in DEFAULTS.keys()
+    }
+if reset_btn:
+    # clear widgets
+    for k, v in DEFAULTS.items():
+        st.session_state[k] = v
+    # clear stored results
+    st.session_state.results = None
+    # optional: jump back to top of script so user sees blank state
+    st.experimental_rerun()
 else:
     st.write("⬅ Configure the policy on the left, then click **Advise** to see the benchmark premium and guidance.")
