@@ -72,5 +72,5 @@ def rps(gap_pct: float,
 def rps_band(score: float):
     if score >= 90:  return "A", "#008000", "Top-tier; place confidently."
     if score >= 75:  return "B", "#77a220", "Attractive; place with minor tweaks."
-    if score >= 60:  return "C", "orange",  "Quote possible but needs concessions."
+    if score >= 60:  return "C", "orange",  "Placement possible but needs concessions."
     return            "D", "red",           "Outside appetite; expect decline."
