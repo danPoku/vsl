@@ -314,7 +314,7 @@ if advise_btn:
         unsafe_allow_html=True
     )
 
-    row1_col2.metric("**Average Acceptable Market Rate**", f"{pred_rate}")
+    row1_col2.metric("**Average Acceptable Market Rate**", f"{pred_rate:.2%}")
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
     row1_col3.metric("**Visal Model Rating Guide**", range_txt)
