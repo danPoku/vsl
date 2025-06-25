@@ -168,7 +168,7 @@ if advise_btn:
         "fac_sum_insured": sum_ins,
         "business_name":   business,
         "currency":        currency,
-        "brokerage":       brokerage,
+        "brokerage":       quoted_brokerage_fee,
         "commission":      commission,
         "reinsured":       insurer,
     }])
