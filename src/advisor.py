@@ -183,7 +183,7 @@ if advise_btn:
 
     # ---- Model predictions ---------------------------------------------
     pred_prem        = float(model.predict(row)[0])
-    st.write("**Visal Model Predicted Premium:**", fmt_currency(pred_prem, currency))
+    # st.write("**Visal Model Predicted Premium:**", fmt_currency(pred_prem, currency))
     pred_rate        = pred_prem / sum_ins if sum_ins else 0
     gap              = premium_input - pred_prem
     gap_pct          = (gap / pred_prem) * 100 if pred_prem else 0
@@ -325,31 +325,31 @@ if advise_btn:
         unsafe_allow_html=True,
     )
     # Row 1 – premium-centric metrics
-    # row1_col1, 
-    row1_col2, row1_col3, row1_col4 = st.columns(3, gap="small")
+    row1_col1, row1_col2, row1_col3 = st.columns(3, gap="small")
 
     # row1_col1.markdown("**Premium Comment**")
     # row1_col1.markdown(
     #     f"<span style='color:{colour}; font-weight:bold'>{flag}</span>",
     #     unsafe_allow_html=True
     # )
+    
+    row1_col1.metric("**Visal Model Predicted Premium**", fmt_currency(pred_prem, currency))
 
     row1_col2.metric("**Average Acceptable Market Rate**", f"{pred_rate:.2%}")
 
     range_txt = f"{fmt_currency(range_low, currency)} – {fmt_currency(range_high, currency)}"
     row1_col3.metric("**Visal Model Rating Guide**", range_txt)
 
-    row1_col4.metric("**Insurer Premium Payment Profile**", default_txt)
-
     # Row 2 – brokerage metrics   (only if the premium itself is sensible)
     br_col1, br_col2, br_col3 = st.columns(3, gap="small")
 
     if is_premium_sound:
-        br_col1.markdown("**Brokerage Comment**")
-        br_col1.markdown(
-            f"<span style='color:{br_colour}; font-weight:bold'>{br_flag}</span>",
-            unsafe_allow_html=True
-        )
+        # br_col1.markdown("**Brokerage Comment**")
+        # br_col1.markdown(
+        #     f"<span style='color:{br_colour}; font-weight:bold'>{br_flag}</span>",
+        #     unsafe_allow_html=True
+        # )
+        br_col1.metric("**Insurer Premium Payment Profile**", default_txt)
         br_col2.metric("**Predicted Brokerage Rate**", f"{pred_broker_rate:.2f}%")
         br_col3.metric("**Reinsurance Placement Score**", f"{RPS_VAL}/100")
         br_col3.markdown(
