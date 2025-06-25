@@ -183,6 +183,7 @@ if advise_btn:
 
     # ---- Model predictions ---------------------------------------------
     pred_prem        = float(model.predict(row)[0])
+    st.write("Predicted Premium:", pred_prem)
     pred_rate        = pred_prem / sum_ins if sum_ins else 0
     gap              = premium_input - pred_prem
     gap_pct          = (gap / pred_prem) * 100 if pred_prem else 0
@@ -247,7 +248,7 @@ if advise_btn:
 
     # ---- Advisory messages ---------------------------------------------
     cedant_msg  = {
-        "under": "Premium is below model range – reinsurers may load or decline.",
+        "under": "Premium is below model range - reinsurers may load or decline.",
         "ok":    "Premium sits in the fair range.",
         "over":  "Premium is above model range – client may be overpaying.",
     }[price_band]

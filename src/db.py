@@ -64,7 +64,7 @@ def log_submission(data: dict):
         data.get("pred_prem"),
         data.get("pred_rate"),
         data.get("prem_mae"),
-        data.get("confidence_interval"),
+        data.get("prem_confidence_interval"),
         data.get("prem_range_low"),
         data.get("prem_range_high"),
         data.get("quoted_brokerage_fee"),
