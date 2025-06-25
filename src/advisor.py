@@ -325,13 +325,14 @@ if advise_btn:
         unsafe_allow_html=True,
     )
     # Row 1 – premium-centric metrics
-    row1_col1, row1_col2, row1_col3, row1_col4 = st.columns(4, gap="small")
+    # row1_col1, 
+    row1_col2, row1_col3, row1_col4 = st.columns(3, gap="small")
 
-    row1_col1.markdown("**Premium Comment**")
-    row1_col1.markdown(
-        f"<span style='color:{colour}; font-weight:bold'>{flag}</span>",
-        unsafe_allow_html=True
-    )
+    # row1_col1.markdown("**Premium Comment**")
+    # row1_col1.markdown(
+    #     f"<span style='color:{colour}; font-weight:bold'>{flag}</span>",
+    #     unsafe_allow_html=True
+    # )
 
     row1_col2.metric("**Average Acceptable Market Rate**", f"{pred_rate:.2%}")
 
