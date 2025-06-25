@@ -183,7 +183,7 @@ if advise_btn:
 
     # ---- Model predictions ---------------------------------------------
     pred_prem        = float(model.predict(row)[0])
-    st.write("Predicted Premium:", fmt_currency(pred_prem, currency))
+    st.write("**Visal Model Predicted Premium:**", fmt_currency(pred_prem, currency))
     pred_rate        = pred_prem / sum_ins if sum_ins else 0
     gap              = premium_input - pred_prem
     gap_pct          = (gap / pred_prem) * 100 if pred_prem else 0
