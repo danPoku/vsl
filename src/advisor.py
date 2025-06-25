@@ -192,7 +192,25 @@ if advise_btn:
     is_premium_sound = premium_input >= SOUND_PREMIUM_THRESHOLD * pred_prem
 
     # ---- Price band -----------------------------------------------------
-    lob_lo, lob_hi   = bands_dict.get(business, (-10, 10))
+
+    OVERRIDE_BANDS = {
+        "Boiler & Pressure Plant",
+        "Business Interruption",
+        "Money Insurance",
+        "Motor Third Party Fire & Theft",
+        "Performance Bond",
+        "Petroleum Bond",
+        "Professional Indemnity",
+        "Public Liability",
+        "Transit Bond",
+    }
+
+    if business in OVERRIDE_BANDS:
+        lob_lo, lob_hi = -10, 10
+    else:
+        lob_lo, lob_hi = bands_dict.get(business, (-10, 10))
+
+    # lob_lo, lob_hi   = bands_dict.get(business, (-10, 10)) 
     if gap_pct < lob_lo:
         price_band, colour, flag = "under", "orange", "⚠ Under-priced."
     elif gap_pct > lob_hi:
